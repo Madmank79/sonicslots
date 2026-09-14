@@ -350,9 +350,9 @@ function updateLeaderboardDisplay() {
     lbList.innerHTML = 'No scores yet – be the first!';
     return;
   }
-  lbList.innerHTML = scores.map((s, i) =>
-    `\( {i + 1}. <b> \){s.name}</b> — \( {s.score} Rings <span style="opacity:0.7">( \){s.char})</span>`
-  ).join('<br>');
+  lbList.innerHTML = scores.map((s, i) => {
+    return (i + 1) + '. <b>' + s.name + '</b> — ' + s.score + ' Rings <span style="opacity:0.7">(' + s.char + ')</span>';
+  }).join('<br>');
 }
 
 // Init
