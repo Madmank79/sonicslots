@@ -18,7 +18,6 @@
             align-items: center;
         }
 
-        /* Main Game Screen Frame */
         #game-frame {
             width: 100vw;
             height: 100vh;
@@ -34,7 +33,6 @@
             position: relative;
         }
 
-        /* Top Bar Header */
         header {
             grid-column: 1 / 4;
             background: rgba(0, 0, 0, 0.6);
@@ -47,7 +45,6 @@
             color: #ffdf00;
         }
 
-        /* Left Side Panel (Bets & Controls) */
         .side-panel-left {
             background: rgba(20, 0, 40, 0.8);
             border-right: 2px solid #442266;
@@ -59,7 +56,6 @@
             gap: 10px;
         }
 
-        /* Right Side Panel (Stats & Balance) */
         .side-panel-right {
             background: rgba(20, 0, 40, 0.8);
             border-left: 2px solid #442266;
@@ -71,7 +67,6 @@
             gap: 10px;
         }
 
-        /* 5x4 Slot Machine Grid Matrix */
         #slot-matrix {
             background: #ffffff;
             display: grid;
@@ -93,7 +88,6 @@
             border-radius: 4px;
         }
 
-        /* Bottom Action Bar */
         footer {
             grid-column: 1 / 4;
             background: rgba(0, 0, 0, 0.8);
@@ -111,7 +105,6 @@
             text-shadow: 1px 1px #000;
         }
 
-        /* UI Buttons & Controls */
         .casino-btn {
             background: linear-gradient(to bottom, #ffcc00, #ff8800);
             border: 2px solid #fff;
@@ -152,14 +145,12 @@
 <body>
 
 <div id="game-frame">
-    <!-- Header -->
     <header>
         <span>🌟 CASINO NIGHT ZONE</span>
         <span id="jackpot-banner">JACKPOT POOL: 💍 5,000</span>
         <span>LEVEL 1</span>
     </header>
 
-    <!-- Left Controls Panel -->
     <div class="side-panel-left">
         <span class="panel-label">BET</span>
         <span id="bet-display" class="panel-value">10</span>
@@ -171,19 +162,14 @@
         <span id="win-display" class="panel-value">0</span>
     </div>
 
-    <!-- 5x4 Grid Matrix Container -->
-    <div id="slot-matrix">
-        <!-- Generated dynamically via JS -->
-    </div>
+    <div id="slot-matrix"></div>
 
-    <!-- Right Stats Panel -->
     <div class="side-panel-right">
         <span class="panel-label">RINGS</span>
         <span id="credits-display" class="panel-value">500</span>
         <button class="casino-btn" style="background:#00aaff; color:white; margin-top:15px;" onclick="toggleHoldHelp()">HELP</button>
     </div>
 
-    <!-- Bottom Action Footer -->
     <footer>
         <div id="message-box">PRESS SPIN TO PLAY!</div>
         <button id="spin-btn" onclick="spinMatrix()">SPIN!</button>
@@ -191,7 +177,6 @@
 </div>
 
 <script>
-    // Sonic Universe Character & Item Symbol Set (5x4 Matrix)
     const symbols = ['🦔', '🦊', '🥊', '🌑', '🤖', '💍', '💎', '🎰'];
     const symbolPayouts = {
         '🦔': 50,  // Sonic
@@ -200,8 +185,8 @@
         '🌑': 60,  // Shadow
         '🤖': 25,  // Eggman
         '💍': 15,  // Ring
-        '💎': 100, // Chaos Emerald (Jackpot)
-        '🎰': 30   // BAR / Casino Icon
+        '💎': 100, // Chaos Emerald
+        '🎰': 30   // Slot Icon
     };
 
     let credits = 500;
@@ -212,10 +197,10 @@
     const cols = 5;
     let matrixState = [];
 
-    // Initialize Grid Elements
     const matrixContainer = document.getElementById('slot-matrix');
-    const cellElements = [];
+    let cellElements = [];
 
+    // Initialize Grid Elements correctly
     for (let r = 0; r < rows; r++) {
         matrixState[r] = [];
         for (let c = 0; c < cols; c++) {
@@ -259,7 +244,6 @@
         setTimeout(() => {
             clearInterval(spinTimer);
             
-            // Lock in final randomized state
             let totalWin = 0;
             let index = 0;
             for (let r = 0; r < rows; r++) {
@@ -271,7 +255,7 @@
                 }
             }
 
-            // Simple win evaluation check across middle row
+            // Check match on middle row (Row index 1)
             let midRowWin = true;
             let firstSym = matrixState[1][0];
             for (let c = 1; c < cols; c++) {
@@ -295,7 +279,7 @@
     }
 
     function toggleHoldHelp() {
-        alert("Sonic Slot Controls:\n- Use +/- to change your bet.\n- Match characters across the reels to win rings!\n- Chaos Emeralds yield the highest payout.");
+        alert("Sonic Slot Controls:\n- Use +/- to change your bet.\n- Match characters across the middle row to win rings!\n- Chaos Emeralds yield the highest payout.");
     }
 </script>
 
