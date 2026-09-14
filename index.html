@@ -121,7 +121,7 @@
 
 <div id="game-container">
     <h1>🦔 Sonic Slots</h1>
-    <div id="message">Gotta go fast! Hold & Nudge available every spin</div>
+    <div id="message">Gotta go fast! Nudge every spin • Hold is random</div>
     
     <!-- Reels -->
     <div class="reels-row">
@@ -132,9 +132,9 @@
 
     <!-- Hold Buttons -->
     <div class="control-row">
-        <button id="hold1">Hold 1</button>
-        <button id="hold2">Hold 2</button>
-        <button id="hold3">Hold 3</button>
+        <button id="hold1" disabled>Hold 1</button>
+        <button id="hold2" disabled>Hold 2</button>
+        <button id="hold3" disabled>Hold 3</button>
     </div>
 
     <!-- Nudge Buttons -->
@@ -172,20 +172,21 @@
     ];
 
     const symbolValues = {
-        '🦔': 500,   // Sonic
-        '💎': 300,   // Chaos Emerald
-        '🦊': 150,   // Tails
-        '🥊': 150,   // Knuckles
-        '🌸': 150,   // Amy
-        '💍': 80,    // Ring
-        '🌭': 40,    // Chili Dog
-        '🤖': -50    // Eggman (lose)
+        '🦔': 500,
+        '💎': 300,
+        '🦊': 150,
+        '🥊': 150,
+        '🌸': 150,
+        '💍': 80,
+        '🌭': 40,
+        '🤖': -50
     };
 
     // ===== STATE =====
-    let reels = [4, 4, 4]; // start on Rings
+    let reels = [4, 4, 4];
     let held = [false, false, false];
-    let nudgesRemaining = 1; // always available after every spin
+    let holdAvailable = false;          // random feature
+    let nudgesRemaining = 1;
     let credits = 100;
     let isSpinning = false;
 
@@ -212,7 +213,7 @@
     // ===== HOLD =====
     holdElements.forEach((btn, index) => {
         btn.addEventListener('click', () => {
-            if (isSpinning) return;
+            if (isSpinning || !holdAvailable) return;
             held[index] = !held[index];
             btn.classList.toggle('held', held[index]);
             btn.textContent = held[index] ? 'HELD' : `Hold ${index + 1}`;
@@ -253,9 +254,6 @@
         creditDisplay.textContent = credits;
         isSpinning = true;
         messageDisplay.textContent = "Spinning... Gotta go fast!";
-        
-        // Reset holds visually after spin starts
-        // (we keep the held state until the spin finishes)
 
         let spinInterval = setInterval(() => {
             reels.forEach((_, i) => {
@@ -281,20 +279,27 @@
 
             isSpinning = false;
 
-            // Reset holds
+            // Reset holds after the spin
             held = [false, false, false];
             holdElements.forEach((btn, i) => {
                 btn.classList.remove('held');
                 btn.textContent = `Hold ${i + 1}`;
             });
 
-            // Always give 1 nudge after every spin
+            // Always give 1 nudge
             nudgesRemaining = 1;
             updateNudgeButtons();
-            messageDisplay.textContent = "1 Nudge available – use it or spin again!";
-            
-            // Auto-check if player doesn't want to nudge
-            // (they can still click nudge, or just spin again)
+
+            // Random Hold feature (\~35% chance)
+            if (Math.random() < 0.35) {
+                holdAvailable = true;
+                updateHoldButtons();
+                messageDisplay.textContent = "🎯 HOLD FEATURE! You can hold reels for the next spin + 1 Nudge";
+            } else {
+                holdAvailable = false;
+                updateHoldButtons();
+                messageDisplay.textContent = "1 Nudge available – use it or spin again!";
+            }
         }, 1400);
     }
 
@@ -303,11 +308,9 @@
         const s2 = symbols[reels[1]];
         const s3 = symbols[reels[2]];
 
-        // Three of a kind
         if (s1 === s2 && s2 === s3) {
             const value = symbolValues[s1];
             if (value < 0) {
-                // Eggman
                 const loss = Math.min(Math.abs(value), credits);
                 credits -= loss;
                 messageDisplay.textContent = `☠ Eggman! Lost ${loss} Rings!`;
@@ -315,9 +318,7 @@
                 credits += value;
                 messageDisplay.textContent = `JACKPOT! 3× \( {s1} → + \){value} Rings!`;
             }
-        }
-        // Any two matching
-        else if (s1 === s2 || s2 === s3 || s1 === s3) {
+        } else if (s1 === s2 || s2 === s3 || s1 === s3) {
             credits += 20;
             messageDisplay.textContent = `Nice! Two matching → +20 Rings`;
         } else {
@@ -335,8 +336,15 @@
         });
     }
 
+    function updateHoldButtons() {
+        holdElements.forEach(btn => {
+            btn.disabled = !holdAvailable || isSpinning;
+        });
+    }
+
     // Initial state
     updateNudgeButtons();
+    updateHoldButtons();
 </script>
 
 </body>
