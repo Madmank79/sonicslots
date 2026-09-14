@@ -6,83 +6,128 @@
     <title>Sonic Slots</title>
     <style>
         body {
-            background-color: #1a1a1a;
+            background: linear-gradient(135deg, #0a1628, #1a2a4a);
             color: #ffffff;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             text-align: center;
             margin: 0;
             padding: 20px;
+            min-height: 100vh;
         }
         #game-container {
-            max-width: 400px;
+            max-width: 420px;
             margin: 0 auto;
-            background: #2a2a2a;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            background: #1e2a3a;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+            border: 3px solid #00aaff;
+        }
+        h1 {
+            color: #00ccff;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            text-shadow: 0 0 10px #00aaff;
         }
         #message {
             font-size: 16px;
             margin-bottom: 15px;
-            color: #ffcc00;
+            color: #ffdd44;
             min-height: 24px;
+            font-weight: bold;
         }
         .reels-row {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            font-size: 48px;
+            gap: 12px;
+            font-size: 52px;
+            background: #0d1520;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            border: 3px solid #334;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+        .reel {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: #111;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 2px solid #444;
+            border-radius: 10px;
+            border: 2px solid #445;
         }
         .control-row {
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         button {
             background-color: #0088cc;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 11px 14px;
             font-size: 14px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
+            transition: 0.15s;
+        }
+        button:hover {
+            filter: brightness(1.15);
         }
         button:active {
-            opacity: 0.8;
+            transform: scale(0.96);
         }
         button.held {
-            background-color: #ff4444;
+            background-color: #ff3333 !important;
+            box-shadow: 0 0 12px #ff4444;
+        }
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
         }
         #spinBtn {
-            background-color: #00C851;
-            font-size: 18px;
+            background: linear-gradient(180deg, #00dd66, #00aa44);
+            font-size: 20px;
             width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
+            padding: 14px;
+            margin: 10px 0 15px 0;
+            border: 2px solid #00ff88;
+        }
+        #spinBtn:hover {
+            background: linear-gradient(180deg, #22ff88, #00cc55);
         }
         .stats {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
+            color: #ffdd44;
+        }
+        .paytable {
+            font-size: 12px;
+            color: #aaccff;
+            margin-top: 15px;
+            line-height: 1.5;
+            text-align: left;
+            background: #152030;
+            padding: 12px;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    <div id="message">Welcome to Sonic Slots!</div>
+    <h1>🦔 Sonic Slots</h1>
+    <div id="message">Gotta go fast! Hold & Nudge available every spin</div>
     
-    <!-- Reel Display -->
+    <!-- Reels -->
     <div class="reels-row">
-        <span id="reel1">🍒</span>
-        <span id="reel2">🍒</span>
-        <span id="reel3">🍒</span>
+        <div class="reel" id="reel1">💍</div>
+        <div class="reel" id="reel2">💍</div>
+        <div class="reel" id="reel3">💍</div>
     </div>
 
     <!-- Hold Buttons -->
@@ -92,37 +137,79 @@
         <button id="hold3">Hold 3</button>
     </div>
 
-    <!-- Nudge Buttons (Hidden until triggered) -->
+    <!-- Nudge Buttons -->
     <div class="control-row">
-        <button id="nudge1" style="display:none;">Nudge 1</button>
-        <button id="nudge2" style="display:none;">Nudge 2</button>
-        <button id="nudge3" style="display:none;">Nudge 3</button>
+        <button id="nudge1">Nudge 1</button>
+        <button id="nudge2">Nudge 2</button>
+        <button id="nudge3">Nudge 3</button>
     </div>
 
-    <!-- Spin & Credits -->
-    <div>
-        <button id="spinBtn">Spin (10 Cr)</button>
+    <button id="spinBtn">Spin (10 Rings)</button>
+    
+    <div class="stats">Rings: <span id="credits">100</span></div>
+
+    <div class="paytable">
+        <strong>Paytable</strong><br>
+        3× Sonic = 500 &nbsp;|&nbsp; 3× Chaos Emerald = 300<br>
+        3× Tails / Knuckles / Amy = 150<br>
+        3× Ring = 80 &nbsp;|&nbsp; 3× Chili Dog = 40<br>
+        Any 2 matching = 20<br>
+        3× Eggman = Lose 50 Rings ☠
     </div>
-    <div class="stats">Credits: <span id="credits">100</span></div>
 </div>
 
 <script>
-    const symbols = ['🍒', '🍋', '🔔', '⭐', '💎', '7️⃣'];
-    const symbolValues = { '🍒': 10, '🍋': 20, '🔔': 30, '⭐': 40, '💎': 50, '7️⃣': 100 };
+    // ===== SYMBOLS =====
+    const symbols = [
+        '🦔', // Sonic
+        '🦊', // Tails
+        '🥊', // Knuckles
+        '🌸', // Amy
+        '💍', // Ring
+        '💎', // Chaos Emerald
+        '🤖', // Eggman
+        '🌭'  // Chili Dog
+    ];
 
-    let reels = [0, 0, 0];
+    const symbolValues = {
+        '🦔': 500,   // Sonic
+        '💎': 300,   // Chaos Emerald
+        '🦊': 150,   // Tails
+        '🥊': 150,   // Knuckles
+        '🌸': 150,   // Amy
+        '💍': 80,    // Ring
+        '🌭': 40,    // Chili Dog
+        '🤖': -50    // Eggman (lose)
+    };
+
+    // ===== STATE =====
+    let reels = [4, 4, 4]; // start on Rings
     let held = [false, false, false];
-    let nudgesRemaining = 0;
+    let nudgesRemaining = 1; // always available after every spin
     let credits = 100;
     let isSpinning = false;
 
-    const reelElements = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
-    const holdElements = [document.getElementById('hold1'), document.getElementById('hold2'), document.getElementById('hold3')];
-    const nudgeElements = [document.getElementById('nudge1'), document.getElementById('nudge2'), document.getElementById('nudge3')];
+    // ===== DOM =====
+    const reelElements = [
+        document.getElementById('reel1'),
+        document.getElementById('reel2'),
+        document.getElementById('reel3')
+    ];
+    const holdElements = [
+        document.getElementById('hold1'),
+        document.getElementById('hold2'),
+        document.getElementById('hold3')
+    ];
+    const nudgeElements = [
+        document.getElementById('nudge1'),
+        document.getElementById('nudge2'),
+        document.getElementById('nudge3')
+    ];
     const creditDisplay = document.getElementById('credits');
     const messageDisplay = document.getElementById('message');
     const spinButton = document.getElementById('spinBtn');
 
+    // ===== HOLD =====
     holdElements.forEach((btn, index) => {
         btn.addEventListener('click', () => {
             if (isSpinning) return;
@@ -132,95 +219,124 @@
         });
     });
 
+    // ===== NUDGE =====
     nudgeElements.forEach((btn, index) => {
         btn.addEventListener('click', () => {
             if (isSpinning || nudgesRemaining <= 0) return;
+
             reels[index] = (reels[index] + 1) % symbols.length;
             reelElements[index].textContent = symbols[reels[index]];
             nudgesRemaining--;
-            messageDisplay.textContent = `Nudge used! Remaining: ${nudgesRemaining}`;
-            
+
+            updateNudgeButtons();
+            messageDisplay.textContent = nudgesRemaining > 0 
+                ? `Nudge used! ${nudgesRemaining} left` 
+                : 'Nudge used! Checking result...';
+
             if (nudgesRemaining === 0) {
-                disableNudges();
                 checkWin();
             }
         });
     });
 
+    // ===== SPIN =====
     spinButton.addEventListener('click', spinReels);
 
     function spinReels() {
         if (isSpinning) return;
         if (credits < 10) {
-            messageDisplay.textContent = "Not enough credits!";
+            messageDisplay.textContent = "Not enough Rings!";
             return;
         }
 
         credits -= 10;
         creditDisplay.textContent = credits;
         isSpinning = true;
-        messageDisplay.textContent = "Spinning...";
-        disableNudges();
+        messageDisplay.textContent = "Spinning... Gotta go fast!";
+        
+        // Reset holds visually after spin starts
+        // (we keep the held state until the spin finishes)
 
         let spinInterval = setInterval(() => {
-            reels.forEach((val, i) => {
+            reels.forEach((_, i) => {
                 if (!held[i]) {
-                    reels[i] = Math.floor(Math.random() * symbols.length);
-                    reelElements[i].textContent = symbols[reels[i]];
+                    const randomIndex = Math.floor(Math.random() * symbols.length);
+                    reels[i] = randomIndex;
+                    reelElements[i].textContent = symbols[randomIndex];
                 }
             });
-        }, 100);
+        }, 80);
 
         setTimeout(() => {
             clearInterval(spinInterval);
-            
-            reels.forEach((val, i) => {
+
+            // Final positions
+            reels.forEach((_, i) => {
                 if (!held[i]) {
-                    reels[i] = Math.floor(Math.random() * symbols.length);
-                    reelElements[i].textContent = symbols[reels[i]];
+                    const randomIndex = Math.floor(Math.random() * symbols.length);
+                    reels[i] = randomIndex;
+                    reelElements[i].textContent = symbols[randomIndex];
                 }
             });
 
             isSpinning = false;
-            
+
+            // Reset holds
             held = [false, false, false];
             holdElements.forEach((btn, i) => {
                 btn.classList.remove('held');
                 btn.textContent = `Hold ${i + 1}`;
             });
 
-            if (Math.random() < 0.15 && nudgesRemaining === 0) {
-                nudgesRemaining = Math.floor(Math.random() * 2) + 1;
-                messageDisplay.textContent = `Feature Triggered! ${nudgesRemaining} Nudge(s) Awarded!`;
-                enableNudges();
-            } else {
-                checkWin();
-            }
-        }, 1500);
+            // Always give 1 nudge after every spin
+            nudgesRemaining = 1;
+            updateNudgeButtons();
+            messageDisplay.textContent = "1 Nudge available – use it or spin again!";
+            
+            // Auto-check if player doesn't want to nudge
+            // (they can still click nudge, or just spin again)
+        }, 1400);
     }
 
     function checkWin() {
-        if (reels[0] === reels[1] && reels[1] === reels[2]) {
-            let winAmount = symbolValues[symbols[reels[0]]] * 5;
-            credits += winAmount;
-            messageDisplay.textContent = `JACKPOT! Won ${winAmount} credits!`;
-        } else if (reels[0] === reels[1] || reels[1] === reels[2] || reels[0] === reels[2]) {
-            let winAmount = 15;
-            credits += winAmount;
-            messageDisplay.textContent = `Small Win! Won ${winAmount} credits!`;
-        } else {
-            messageDisplay.textContent = "Try again!";
+        const s1 = symbols[reels[0]];
+        const s2 = symbols[reels[1]];
+        const s3 = symbols[reels[2]];
+
+        // Three of a kind
+        if (s1 === s2 && s2 === s3) {
+            const value = symbolValues[s1];
+            if (value < 0) {
+                // Eggman
+                const loss = Math.min(Math.abs(value), credits);
+                credits -= loss;
+                messageDisplay.textContent = `☠ Eggman! Lost ${loss} Rings!`;
+            } else {
+                credits += value;
+                messageDisplay.textContent = `JACKPOT! 3× \( {s1} → + \){value} Rings!`;
+            }
         }
+        // Any two matching
+        else if (s1 === s2 || s2 === s3 || s1 === s3) {
+            credits += 20;
+            messageDisplay.textContent = `Nice! Two matching → +20 Rings`;
+        } else {
+            messageDisplay.textContent = "No win – try again!";
+        }
+
         creditDisplay.textContent = credits;
+        nudgesRemaining = 0;
+        updateNudgeButtons();
     }
 
-    function enableNudges() {
-        nudgeElements.forEach(btn => btn.style.display = 'inline-block');
+    function updateNudgeButtons() {
+        nudgeElements.forEach(btn => {
+            btn.disabled = nudgesRemaining <= 0 || isSpinning;
+        });
     }
 
-    function disableNudges() {
-        nudgeElements.forEach(btn => btn.style.display = 'none');
-    }
+    // Initial state
+    updateNudgeButtons();
 </script>
 
 </body>
