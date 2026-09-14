@@ -1,179 +1,321 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Sonic Runner</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden; /* Prevent scrolling */
-            background-color: #87CEEB; /* Sky blue */
-        }
-        #gameCanvas {
-            display: block;
-        }
-        #score {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 24px;
-            font-family: Arial, sans-serif;
-            color: white;
-            text-shadow: 2px 2px black;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Sonic Runner</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a1628;
+    color: white;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  #ui {
+    width: 100%;
+    max-width: 800px;
+    padding: 10px;
+    text-align: center;
+  }
+  h1 { color: #00ccff; margin: 8px 0; text-shadow: 0 0 10px #00aaff; }
+  canvas {
+    background: linear-gradient(#87CEEB, #4a90d9);
+    border: 3px solid #00aaff;
+    border-radius: 8px;
+    max-width: 100%;
+    display: block;
+  }
+  .btn {
+    background: #00aa44;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 6px;
+    font-weight: bold;
+  }
+  .btn:active { transform: scale(0.96); }
+  .char-btn {
+    background: #0088cc;
+    width: 90px;
+    height: 90px;
+    font-size: 40px;
+    margin: 8px;
+  }
+  .char-btn.selected { outline: 4px solid #ffdd00; }
+  #scoreBoard, #highScore {
+    font-size: 20px;
+    margin: 6px;
+  }
+  #leaderboard {
+    background: #1e2a3a;
+    padding: 12px;
+    border-radius: 10px;
+    margin-top: 12px;
+    max-width: 360px;
+    text-align: left;
+    font-size: 14px;
+  }
+  #nameInput {
+    padding: 8px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    width: 180px;
+    margin: 8px;
+  }
+  .hidden { display: none !important; }
+</style>
 </head>
 <body>
-    <div id="score">Score: 0</div>
-    <canvas id="gameCanvas"></canvas>
+
+<div id="ui">
+  <h1>🦔 Sonic Runner</h1>
+
+  <!-- Character Select -->
+  <div id="charSelect">
+    <p>Choose your character</p>
+    <button class="btn char-btn" data-char="sonic">🦔</button>
+    <button class="btn char-btn" data-char="tails">🦊</button>
+    <button class="btn char-btn" data-char="knuckles">🥊</button>
+    <br>
+    <button class="btn" id="startBtn">Start Run!</button>
+  </div>
+
+  <!-- Game UI -->
+  <div id="gameUI" class="hidden">
+    <div id="scoreBoard">Rings: 0</div>
+    <div id="highScore">Best: 0</div>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <p style="margin-top:8px;font-size:14px">Tap / Space / ↑ to Jump</p>
+  </div>
+
+  <!-- Game Over -->
+  <div id="gameOver" class="hidden">
+    <h2>Game Over!</h2>
+    <p>You collected <span id="finalScore">0</span> Rings</p>
+    <input type="text" id="nameInput" placeholder="Your name" maxlength="12">
+    <br>
+    <button class="btn" id="saveScoreBtn">Save Score</button>
+    <button class="btn" id="restartBtn">Play Again</button>
+  </div>
+
+  <!-- Local Leaderboard -->
+  <div id="leaderboard">
+    <strong>🏆 Local Leaderboard</strong>
+    <div id="lbList">No scores yet</div>
+  </div>
+</div>
 
 <script>
-// --- Setup Canvas ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Resize canvas to window size
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-// Game Variables
-let score = 0;
-let frame = 0;
-let gameSpeed = 5;
-let isGameOver = false;
-
-// Sonic Object (Simplified for example)
-const sonic = {
-    x: 50,
-    y: canvas.height - 150, // Ground level
-    width: 60,
-    height: 60,
-    velocityY: 0,
-    gravity: 0.8,
-    jumpForce: -15,
-    isJumping: false
+// Characters
+const characters = {
+  sonic:   { emoji: '🦔', color: '#0066ff', jumpPower: -14, speedMult: 1.15 },
+  tails:   { emoji: '🦊', color: '#ff8800', jumpPower: -16, speedMult: 1.0  },
+  knuckles:{ emoji: '🥊', color: '#cc0000', jumpPower: -13, speedMult: 1.05 }
 };
 
-// Obstacle Array
-let obstacles = [];
+let selectedChar = 'sonic';
+let player, rings, obstacles, score, gameSpeed, gameRunning, frame;
+let highScore = parseInt(localStorage.getItem('sonicRunnerBest') || '0');
+let scores = JSON.parse(localStorage.getItem('sonicRunnerScores') || '[]');
 
-// --- Input Handling ---
-window.addEventListener('mousedown', () => {
-    if (isGameOver) {
-        resetGame();
-    } else if (!sonic.isJumping) {
-        sonic.velocityY = sonic.jumpForce;
-        sonic.isJumping = true;
-    }
+// UI elements
+const charSelect = document.getElementById('charSelect');
+const gameUI = document.getElementById('gameUI');
+const gameOverScreen = document.getElementById('gameOver');
+const scoreBoard = document.getElementById('scoreBoard');
+const highScoreEl = document.getElementById('highScore');
+const finalScoreEl = document.getElementById('finalScore');
+const lbList = document.getElementById('lbList');
+
+// Character buttons
+document.querySelectorAll('.char-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedChar = btn.dataset.char;
+  });
 });
+document.querySelector('[data-char="sonic"]').classList.add('selected');
 
-// --- Game Logic ---
-
-function updateSonic() {
-    // Apply gravity
-    sonic.y += sonic.velocityY;
-    sonic.velocityY += sonic.gravity;
-
-    // Ground detection
-    if (sonic.y > canvas.height - 150) {
-        sonic.y = canvas.height - 150;
-        sonic.velocityY = 0;
-        sonic.isJumping = false;
-    }
-}
-
-function handleObstacles() {
-    // Spawn new obstacles
-    if (frame % 100 === 0) {
-        const size = 30; // spike size
-        obstacles.push({
-            x: canvas.width,
-            y: canvas.height - 150 - size,
-            width: size,
-            height: size
-        });
-    }
-
-    // Move and draw obstacles
-    for (let i = 0; i < obstacles.length; i++) {
-        obstacles[i].x -= gameSpeed;
-
-        // Draw simple red spike
-        ctx.fillStyle = 'red';
-        ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
-
-        // Collision Detection (AABB)
-        if (
-            sonic.x < obstacles[i].x + obstacles[i].width &&
-            sonic.x + sonic.width > obstacles[i].x &&
-            sonic.y < obstacles[i].y + obstacles[i].height &&
-            sonic.y + sonic.height > obstacles[i].y
-        ) {
-            isGameOver = true;
-        }
-
-        // Remove off-screen obstacles
-        if (obstacles[i].x + obstacles[i].width < 0) {
-            obstacles.splice(i, 1);
-            score++;
-            document.getElementById('score').innerText = 'Score: ' + score;
-        }
-    }
-}
-
-function drawGround() {
-    ctx.fillStyle = '#228B22'; // Forest Green
-    ctx.fillRect(0, canvas.height - 150, canvas.width, 150);
-}
-
-// --- Main Game Loop ---
-function animate() {
-    if (isGameOver) {
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(0,0, canvas.width, canvas.height);
-        ctx.fillStyle = 'white';
-        ctx.font = '50px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
-        ctx.font = '20px Arial';
-        ctx.fillText('Tap to Restart', canvas.width/2, canvas.height/2 + 50);
-        return; // Stop loop
-    }
-
-    requestAnimationFrame(animate);
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear screen
-
-    drawGround();
-    
-    // Draw simple Blue Sonic box
-    ctx.fillStyle = 'blue';
-    ctx.fillRect(sonic.x, sonic.y, sonic.width, sonic.height);
-    
-    updateSonic();
-    handleObstacles();
-    
-    frame++;
-}
-
-function resetGame() {
-    isGameOver = false;
-    score = 0;
-    obstacles = [];
-    frame = 0;
-    document.getElementById('score').innerText = 'Score: ' + score;
-    animate();
-}
-
-// Start the loop
-animate();
-
-// Handle Window Resize
-window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    sonic.y = canvas.height - 150;
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('restartBtn').addEventListener('click', () => {
+  gameOverScreen.classList.add('hidden');
+  charSelect.classList.remove('hidden');
 });
+document.getElementById('saveScoreBtn').addEventListener('click', saveScore);
 
+// Controls
+window.addEventListener('keydown', e => {
+  if ((e.code === 'Space' || e.code === 'ArrowUp') && gameRunning) jump();
+});
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (gameRunning) jump();
+});
+canvas.addEventListener('mousedown', () => { if (gameRunning) jump(); });
+
+function startGame() {
+  charSelect.classList.add('hidden');
+  gameUI.classList.remove('hidden');
+  gameOverScreen.classList.add('hidden');
+
+  const c = characters[selectedChar];
+  player = {
+    x: 80, y: 300, width: 40, height: 50,
+    velY: 0, grounded: true,
+    emoji: c.emoji, color: c.color,
+    jumpPower: c.jumpPower, speedMult: c.speedMult
+  };
+  rings = [];
+  obstacles = [];
+  score = 0;
+  gameSpeed = 5 * player.speedMult;
+  frame = 0;
+  gameRunning = true;
+  highScoreEl.textContent = 'Best: ' + highScore;
+  updateLeaderboardDisplay();
+  requestAnimationFrame(loop);
+}
+
+function jump() {
+  if (player.grounded) {
+    player.velY = player.jumpPower;
+    player.grounded = false;
+  }
+}
+
+function loop() {
+  if (!gameRunning) return;
+  frame++;
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+function update() {
+  // Gravity
+  player.velY += 0.7;
+  player.y += player.velY;
+  if (player.y >= 300) {
+    player.y = 300;
+    player.velY = 0;
+    player.grounded = true;
+  }
+
+  // Spawn rings
+  if (frame % 60 === 0) {
+    rings.push({
+      x: canvas.width + 20,
+      y: 180 + Math.random() * 100,
+      size: 22
+    });
+  }
+
+  // Spawn obstacles (Eggman)
+  if (frame % 90 === 0) {
+    obstacles.push({
+      x: canvas.width + 30,
+      y: 310,
+      width: 45,
+      height: 50,
+      emoji: '🤖'
+    });
+  }
+
+  // Move everything
+  gameSpeed += 0.003;
+  rings.forEach(r => r.x -= gameSpeed);
+  obstacles.forEach(o => o.x -= gameSpeed);
+
+  // Collect rings
+  rings = rings.filter(r => {
+    if (Math.abs(r.x - player.x) < 35 && Math.abs(r.y - (player.y + 20)) < 40) {
+      score += 10;
+      scoreBoard.textContent = 'Rings: ' + score;
+      return false;
+    }
+    return r.x > -30;
+  });
+
+  // Hit obstacle
+  for (let o of obstacles) {
+    if (o.x < player.x + 35 && o.x + o.width > player.x &&
+        o.y < player.y + 45 && o.y + o.height > player.y) {
+      endGame();
+      return;
+    }
+  }
+  obstacles = obstacles.filter(o => o.x > -60);
+}
+
+function draw() {
+  // Sky already set by CSS
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Ground
+  ctx.fillStyle = '#228B22';
+  ctx.fillRect(0, 350, canvas.width, 50);
+
+  // Player
+  ctx.font = '42px Arial';
+  ctx.fillText(player.emoji, player.x, player.y + 40);
+
+  // Rings
+  ctx.font = '28px Arial';
+  rings.forEach(r => ctx.fillText('💍', r.x, r.y));
+
+  // Obstacles
+  ctx.font = '40px Arial';
+  obstacles.forEach(o => ctx.fillText(o.emoji, o.x, o.y));
+}
+
+function endGame() {
+  gameRunning = false;
+  finalScoreEl.textContent = score;
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('sonicRunnerBest', highScore);
+  }
+  gameUI.classList.add('hidden');
+  gameOverScreen.classList.remove('hidden');
+}
+
+function saveScore() {
+  const name = document.getElementById('nameInput').value.trim() || 'Anonymous';
+  scores.push({ name, score, char: selectedChar, date: new Date().toLocaleDateString() });
+  scores.sort((a, b) => b.score - a.score);
+  scores = scores.slice(0, 10); // keep top 10
+  localStorage.setItem('sonicRunnerScores', JSON.stringify(scores));
+  updateLeaderboardDisplay();
+  document.getElementById('nameInput').value = '';
+  alert('Score saved locally!');
+}
+
+function updateLeaderboardDisplay() {
+  if (scores.length === 0) {
+    lbList.innerHTML = 'No scores yet – be the first!';
+    return;
+  }
+  lbList.innerHTML = scores.map((s, i) => 
+    `\( {i+1}. <b> \){s.name}</b> – \( {s.score} Rings ( \){s.char})`
+  ).join('<br>');
+}
+
+// Load leaderboard on start
+updateLeaderboardDisplay();
+highScoreEl.textContent = 'Best: ' + highScore;
 </script>
 </body>
 </html>
