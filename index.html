@@ -1,287 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Sonic Casino Slots</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background: linear-gradient(135deg, #050515 0%, #1a0a3a 100%);
-            color: white;
-            font-family: 'Arial Black', Gadget, sans-serif;
-            text-align: center;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+import logging
+import random
+import sqlite3
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-        #game-frame {
-            width: 100vw;
-            height: 100vh;
-            max-width: 900px;
-            max-height: 500px;
-            background: radial-gradient(circle, #2b1055 0%, #000011 100%);
-            border: 6px solid #d4af37;
-            border-radius: 15px;
-            display: grid;
-            grid-template-columns: 140px 1fr 140px;
-            grid-template-rows: 50px 1fr 80px;
-            box-shadow: 0 0 30px rgba(0, 200, 255, 0.4);
-            position: relative;
-        }
+# Enable logging
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-        header {
-            grid-column: 1 / 4;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            border-bottom: 2px solid #d4af37;
-            font-size: 16px;
-            color: #ffdf00;
-        }
+# --- DATABASE SETUP ---
+def init_db():
+    conn = sqlite3.connect("reaper_scores.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS scores (
+            user_id INTEGER PRIMARY KEY,
+            username TEXT,
+            points INTEGER DEFAULT 0
+        )
+    """)
+    conn.commit()
+    conn.close()
 
-        .side-panel-left {
-            background: rgba(20, 0, 40, 0.8);
-            border-right: 2px solid #442266;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            gap: 10px;
-        }
+init_db()
 
-        .side-panel-right {
-            background: rgba(20, 0, 40, 0.8);
-            border-left: 2px solid #442266;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            gap: 10px;
-        }
+# --- REAPER ECOSYSTEM TRIVIA BANK ---
+TRIVIA_QUESTIONS = [
+    {
+        "question": "What structural element in the ecosystem represents tiered growth and support layers for projects?",
+        "options": ["Ascension Pillars", "Red Market Candles", "Slippage Walls", "Burn Zones"],
+        "answer": 0 # Index of the correct option
+    },
+    {
+        "question": "When processing rewards or unlocking ecosystem assets, what fund backs value and secures project floors?",
+        "options": ["The Slush Fund", "The Permanent DRIP Fund", "The Gas Reservoir", "The Validator Pool"],
+        "answer": 1
+    },
+    {
+        "question": "How does the Reaper ecosystem typically handle unvalued, lagging, or dead tokens?",
+        "options": ["By minting more supply", "By ignoring them completely", "By reaping, buying out, and utilizing floor mechanisms", "By locking them in liquidity pools forever"],
+        "answer": 2
+    },
+    {
+        "question": "Which blockchain is the native home of the Reaper (RPR) token and its market-regulation framework?",
+        "options": ["Ethereum", "Solana", "XRP Ledger (XRPL)", "Bitcoin"],
+        "answer": 2
+    }
+]
 
-        #slot-matrix {
-            background: #ffffff;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-            gap: 3px;
-            padding: 6px;
-            border: 4px solid #888;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
-        }
+# Store active trivia state in memory temporarily
+active_quiz = {}
 
-        .slot-cell {
-            background: linear-gradient(to bottom, #f0f0f0, #d0d0d0);
-            border: 1px solid #aaa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 32px;
-            border-radius: 4px;
-        }
+# --- COMMANDS ---
 
-        footer {
-            grid-column: 1 / 4;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            border-top: 2px solid #d4af37;
-        }
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "💀 Welcome to the **Capital Revival Trivia Bot**!\n\n"
+        "Test your knowledge on Ascension Pillars, Boxes, and XRPL mechanics.\n"
+        "Commands:\n"
+        "/trivia - Drop a new ecosystem question\n"
+        "️/leaderboard - View top community reapers"
+    )
 
-        #message-box {
-            font-size: 14px;
-            color: #00ffff;
-            text-transform: uppercase;
-            text-shadow: 1px 1px #000;
-        }
-
-        .casino-btn {
-            background: linear-gradient(to bottom, #ffcc00, #ff8800);
-            border: 2px solid #fff;
-            color: #000;
-            font-family: inherit;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            padding: 6px 10px;
-            font-size: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .casino-btn:active { transform: translateY(2px); }
-
-        #spin-btn {
-            background: linear-gradient(to bottom, #00ff66, #00aa33);
-            color: #fff;
-            font-size: 20px;
-            padding: 10px 25px;
-            border-radius: 8px;
-            border: 2px solid #ffff00;
-            text-shadow: 2px 2px #000;
-            cursor: pointer;
-        }
-        #spin-btn:active { transform: scale(0.95); }
-
-        .panel-label {
-            font-size: 10px;
-            color: #aaa;
-            margin-bottom: -6px;
-        }
-        .panel-value {
-            font-size: 14px;
-            color: #ffdf00;
-        }
-    </style>
-</head>
-<body>
-
-<div id="game-frame">
-    <header>
-        <span>🌟 CASINO NIGHT ZONE</span>
-        <span id="jackpot-banner">JACKPOT POOL: 💍 5,000</span>
-        <span>LEVEL 1</span>
-    </header>
-
-    <div class="side-panel-left">
-        <span class="panel-label">BET</span>
-        <span id="bet-display" class="panel-value">10</span>
-        <div style="display:flex; gap:5px;">
-            <button class="casino-btn" onclick="adjustBet(-5)">-</button>
-            <button class="casino-btn" onclick="adjustBet(5)">+</button>
-        </div>
-        <span class="panel-label" style="margin-top:10px;">WIN</span>
-        <span id="win-display" class="panel-value">0</span>
-    </div>
-
-    <div id="slot-matrix"></div>
-
-    <div class="side-panel-right">
-        <span class="panel-label">RINGS</span>
-        <span id="credits-display" class="panel-value">500</span>
-        <button class="casino-btn" style="background:#00aaff; color:white; margin-top:15px;" onclick="toggleHoldHelp()">HELP</button>
-    </div>
-
-    <footer>
-        <div id="message-box">PRESS SPIN TO PLAY!</div>
-        <button id="spin-btn" onclick="spinMatrix()">SPIN!</button>
-    </footer>
-</div>
-
-<script>
-    const symbols = ['🦔', '🦊', '🥊', '🌑', '🤖', '💍', '💎', '🎰'];
-    const symbolPayouts = {
-        '🦔': 50,  // Sonic
-        '🦊': 40,  // Tails
-        '🥊': 35,  // Knuckles
-        '🌑': 60,  // Shadow
-        '🤖': 25,  // Eggman
-        '💍': 15,  // Ring
-        '💎': 100, // Chaos Emerald
-        '🎰': 30   // Slot Icon
-    };
-
-    let credits = 500;
-    let currentBet = 10;
-    let isSpinning = false;
+async def send_trivia(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    q_data = random.choice(TRIVIA_QUESTIONS)
     
-    const rows = 4;
-    const cols = 5;
-    let matrixState = [];
+    # Send native Telegram Quiz poll
+    message = await context.bot.send_poll(
+        chat_id=chat_id,
+        question=q_data["question"],
+        options=q_data["options"],
+        type="quiz",
+        correct_option_id=q_data["answer"],
+        is_anonymous=False,
+        explanation="Keep studying the ecosystem lore and whitepaper!"
+    )
+    
+    # Save poll ID to track results if needed
+    active_quiz[message.poll.id] = q_data
 
-    const matrixContainer = document.getElementById('slot-matrix');
-    let cellElements = [];
+async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    conn = sqlite3.connect("reaper_scores.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT username, points FROM scores ORDER BY points DESC LIMIT 5")
+    top_users = cursor.fetchall()
+    conn.close()
 
-    // Initialize Grid Elements correctly
-    for (let r = 0; r < rows; r++) {
-        matrixState[r] = [];
-        for (let c = 0; c < cols; c++) {
-            const cell = document.createElement('div');
-            cell.className = 'slot-cell';
-            const randomSym = symbols[Math.floor(Math.random() * symbols.length)];
-            cell.textContent = randomSym;
-            matrixState[r][c] = randomSym;
-            matrixContainer.appendChild(cell);
-            cellElements.push(cell);
-        }
-    }
+    if not top_users:
+        await update.message.reply_text("🏆 No scores recorded yet! Run /trivia to start earning points.")
+        return
 
-    function adjustBet(amount) {
-        if (isSpinning) return;
-        currentBet += amount;
-        if (currentBet < 5) currentBet = 5;
-        if (currentBet > credits) currentBet = credits;
-        document.getElementById('bet-display').textContent = currentBet;
-    }
+    text = "🏆 **Top Ascension Reapers (Leaderboard)** 🏆\n\n"
+    for i, (uname, pts) in enumerate(top_users, 1):
+        name = uname if uname else "Anonymous Reaper"
+        text += f"{i}. {name} — {pts} pts\n"
 
-    function spinMatrix() {
-        if (isSpinning) return;
-        if (credits < currentBet) {
-            document.getElementById('message-box').textContent = "Not enough rings!";
-            return;
-        }
+    await update.message.reply_text(text)
 
-        credits -= currentBet;
-        document.getElementById('credits-display').textContent = credits;
-        document.getElementById('win-display').textContent = "0";
-        document.getElementById('message-box').textContent = "SPINNING...";
-        isSpinning = true;
+# --- MAIN APP ---
+def main():
+    # Replace 'YOUR_BOT_TOKEN' with the token you get from @BotFather
+    app = ApplicationBuilder().token("YOUR_BOT_TOKEN").build()
 
-        let spinTimer = setInterval(() => {
-            cellElements.forEach(cell => {
-                cell.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-            });
-        }, 80);
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("trivia", send_trivia))
+    app.add_handler(CommandHandler("leaderboard", leaderboard))
 
-        setTimeout(() => {
-            clearInterval(spinTimer);
-            
-            let totalWin = 0;
-            let index = 0;
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    const sym = symbols[Math.floor(Math.random() * symbols.length)];
-                    matrixState[r][c] = sym;
-                    cellElements[index].textContent = sym;
-                    index++;
-                }
-            }
+    print("Reaper Trivia Bot is active...")
+    app.run_polling()
 
-            // Check match on middle row (Row index 1)
-            let midRowWin = true;
-            let firstSym = matrixState[1][0];
-            for (let c = 1; c < cols; c++) {
-                if (matrixState[1][c] !== firstSym) {
-                    midRowWin = false;
-                }
-            }
-
-            if (midRowWin) {
-                totalWin = symbolPayouts[firstSym] * (currentBet / 5);
-                credits += totalWin;
-                document.getElementById('win-display').textContent = totalWin;
-                document.getElementById('message-box').textContent = `MEGA WIN! +${totalWin} RINGS!`;
-            } else {
-                document.getElementById('message-box').textContent = "TRY AGAIN, HERO!";
-            }
-
-            document.getElementById('credits-display').textContent = credits;
-            isSpinning = false;
-        }, 1500);
-    }
-
-    function toggleHoldHelp() {
-        alert("Sonic Slot Controls:\n- Use +/- to change your bet.\n- Match characters across the middle row to win rings!\n- Chaos Emeralds yield the highest payout.");
-    }
-</script>
-
-</body>
-</html>
+if __name__ == "__main__":
+    main()
