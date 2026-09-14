@@ -1,123 +1,227 @@
-// script.js - Updated with Hold and Nudge Mechanics for Sonic Slots
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonic Slots</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        #game-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        #message {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #ffcc00;
+            min-height: 24px;
+        }
+        .reels-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            font-size: 48px;
+            background: #111;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #444;
+        }
+        .control-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:active {
+            opacity: 0.8;
+        }
+        button.held {
+            background-color: #ff4444;
+        }
+        #spinBtn {
+            background-color: #00C851;
+            font-size: 18px;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        .stats {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 
-const symbols = ['🍒', '🍋', '🔔', '⭐', '💎', '7️⃣'];
-const symbolValues = { '🍒': 10, '🍋': 20, '🔔': 30, '⭐': 40, '💎': 50, '7️⃣': 100 };
+<div id="game-container">
+    <div id="message">Welcome to Sonic Slots!</div>
+    
+    <!-- Reel Display -->
+    <div class="reels-row">
+        <span id="reel1">🍒</span>
+        <span id="reel2">🍒</span>
+        <span id="reel3">🍒</span>
+    </div>
 
-let reels = [0, 0, 0];
-let held = [false, false, false];
-let nudgesRemaining = 0;
-let credits = 100;
-let isSpinning = false;
+    <!-- Hold Buttons -->
+    <div class="control-row">
+        <button id="hold1">Hold 1</button>
+        <button id="hold2">Hold 2</button>
+        <button id="hold3">Hold 3</button>
+    </div>
 
-// DOM Elements
-const reelElements = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
-const holdElements = [document.getElementById('hold1'), document.getElementById('hold2'), document.getElementById('hold3')];
-const nudgeElements = [document.getElementById('nudge1'), document.getElementById('nudge2'), document.getElementById('nudge3')];
-const creditDisplay = document.getElementById('credits');
-const messageDisplay = document.getElementById('message');
-const spinButton = document.getElementById('spinBtn');
+    <!-- Nudge Buttons (Hidden until triggered) -->
+    <div class="control-row">
+        <button id="nudge1" style="display:none;">Nudge 1</button>
+        <button id="nudge2" style="display:none;">Nudge 2</button>
+        <button id="nudge3" style="display:none;">Nudge 3</button>
+    </div>
 
-// Initialize Hold Button Listeners
-holdElements.forEach((btn, index) => {
-    btn.addEventListener('click', () => {
+    <!-- Spin & Credits -->
+    <div>
+        <button id="spinBtn">Spin (10 Cr)</button>
+    </div>
+    <div class="stats">Credits: <span id="credits">100</span></div>
+</div>
+
+<script>
+    const symbols = ['🍒', '🍋', '🔔', '⭐', '💎', '7️⃣'];
+    const symbolValues = { '🍒': 10, '🍋': 20, '🔔': 30, '⭐': 40, '💎': 50, '7️⃣': 100 };
+
+    let reels = [0, 0, 0];
+    let held = [false, false, false];
+    let nudgesRemaining = 0;
+    let credits = 100;
+    let isSpinning = false;
+
+    const reelElements = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
+    const holdElements = [document.getElementById('hold1'), document.getElementById('hold2'), document.getElementById('hold3')];
+    const nudgeElements = [document.getElementById('nudge1'), document.getElementById('nudge2'), document.getElementById('nudge3')];
+    const creditDisplay = document.getElementById('credits');
+    const messageDisplay = document.getElementById('message');
+    const spinButton = document.getElementById('spinBtn');
+
+    holdElements.forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            if (isSpinning) return;
+            held[index] = !held[index];
+            btn.classList.toggle('held', held[index]);
+            btn.textContent = held[index] ? 'HELD' : `Hold ${index + 1}`;
+        });
+    });
+
+    nudgeElements.forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            if (isSpinning || nudgesRemaining <= 0) return;
+            reels[index] = (reels[index] + 1) % symbols.length;
+            reelElements[index].textContent = symbols[reels[index]];
+            nudgesRemaining--;
+            messageDisplay.textContent = `Nudge used! Remaining: ${nudgesRemaining}`;
+            
+            if (nudgesRemaining === 0) {
+                disableNudges();
+                checkWin();
+            }
+        });
+    });
+
+    spinButton.addEventListener('click', spinReels);
+
+    function spinReels() {
         if (isSpinning) return;
-        held[index] = !held[index];
-        btn.classList.toggle('held', held[index]);
-        btn.textContent = held[index] ? 'HELD' : `Hold ${index + 1}`;
-    });
-});
-
-// Initialize Nudge Button Listeners (Bumps a specific reel down one symbol)
-nudgeElements.forEach((btn, index) => {
-    btn.addEventListener('click', () => {
-        if (isSpinning || nudgesRemaining <= 0) return;
-        reels[index] = (reels[index] + 1) % symbols.length;
-        reelElements[index].textContent = symbols[reels[index]];
-        nudgesRemaining--;
-        messageDisplay.textContent = `Nudge used! Remaining: ${nudgesRemaining}`;
-        
-        if (nudgesRemaining === 0) {
-            disableNudges();
-            checkWin();
+        if (credits < 10) {
+            messageDisplay.textContent = "Not enough credits!";
+            return;
         }
-    });
-});
 
-spinButton.addEventListener('click', spinReels);
+        credits -= 10;
+        creditDisplay.textContent = credits;
+        isSpinning = true;
+        messageDisplay.textContent = "Spinning...";
+        disableNudges();
 
-function spinReels() {
-    if (isSpinning) return;
-    if (credits < 10) {
-        messageDisplay.textContent = "Not enough credits!";
-        return;
+        let spinInterval = setInterval(() => {
+            reels.forEach((val, i) => {
+                if (!held[i]) {
+                    reels[i] = Math.floor(Math.random() * symbols.length);
+                    reelElements[i].textContent = symbols[reels[i]];
+                }
+            });
+        }, 100);
+
+        setTimeout(() => {
+            clearInterval(spinInterval);
+            
+            reels.forEach((val, i) => {
+                if (!held[i]) {
+                    reels[i] = Math.floor(Math.random() * symbols.length);
+                    reelElements[i].textContent = symbols[reels[i]];
+                }
+            });
+
+            isSpinning = false;
+            
+            held = [false, false, false];
+            holdElements.forEach((btn, i) => {
+                btn.classList.remove('held');
+                btn.textContent = `Hold ${i + 1}`;
+            });
+
+            if (Math.random() < 0.15 && nudgesRemaining === 0) {
+                nudgesRemaining = Math.floor(Math.random() * 2) + 1;
+                messageDisplay.textContent = `Feature Triggered! ${nudgesRemaining} Nudge(s) Awarded!`;
+                enableNudges();
+            } else {
+                checkWin();
+            }
+        }, 1500);
     }
 
-    credits -= 10;
-    creditDisplay.textContent = credits;
-    isSpinning = true;
-    messageDisplay.textContent = "Spinning...";
-    disableNudges();
-
-    // Visual spin animation loop
-    let spinInterval = setInterval(() => {
-        reels.forEach((val, i) => {
-            if (!held[i]) {
-                reels[i] = Math.floor(Math.random() * symbols.length);
-                reelElements[i].textContent = symbols[reels[i]];
-            }
-        });
-    }, 100);
-
-    // Stop spin after 1.5 seconds
-    setTimeout(() => {
-        clearInterval(spinInterval);
-        
-        reels.forEach((val, i) => {
-            if (!held[i]) {
-                reels[i] = Math.floor(Math.random() * symbols.length);
-                reelElements[i].textContent = symbols[reels[i]];
-            }
-        });
-
-        isSpinning = false;
-        
-        // Reset holds after spin concludes
-        held = [false, false, false];
-        holdElements.forEach((btn, i) => {
-            btn.classList.remove('held');
-            btn.textContent = `Hold ${i + 1}`;
-        });
-
-        // 10% chance to trigger a random Nudge reward feature
-        if (Math.random() < 0.10 && nudgesRemaining === 0) {
-            nudgesRemaining = Math.floor(Math.random() * 2) + 1; // 1 to 2 nudges
-            messageDisplay.textContent = `Feature Triggered! ${nudgesRemaining} Nudge(s) Awarded!`;
-            enableNudges();
+    function checkWin() {
+        if (reels[0] === reels[1] && reels[1] === reels[2]) {
+            let winAmount = symbolValues[symbols[reels[0]]] * 5;
+            credits += winAmount;
+            messageDisplay.textContent = `JACKPOT! Won ${winAmount} credits!`;
+        } else if (reels[0] === reels[1] || reels[1] === reels[2] || reels[0] === reels[2]) {
+            let winAmount = 15;
+            credits += winAmount;
+            messageDisplay.textContent = `Small Win! Won ${winAmount} credits!`;
         } else {
-            checkWin();
+            messageDisplay.textContent = "Try again!";
         }
-    }, 1500);
-}
-
-function checkWin() {
-    if (reels[0] === reels[1] && reels[1] === reels[2]) {
-        let winAmount = symbolValues[symbols[reels[0]]] * 5;
-        credits += winAmount;
-        messageDisplay.textContent = `JACKPOT! Won ${winAmount} credits!`;
-    } else if (reels[0] === reels[1] || reels[1] === reels[2] || reels[0] === reels[2]) {
-        let winAmount = 15;
-        credits += winAmount;
-        messageDisplay.textContent = `Small Win! Won ${winAmount} credits!`;
-    } else {
-        messageDisplay.textContent = "Try again!";
+        creditDisplay.textContent = credits;
     }
-    creditDisplay.textContent = credits;
-}
 
-function enableNudges() {
-    nudgeElements.forEach(btn => btn.style.display = 'inline-block');
-}
+    function enableNudges() {
+        nudgeElements.forEach(btn => btn.style.display = 'inline-block');
+    }
 
-function disableNudges() {
-    nudgeElements.forEach(btn => btn.style.display = 'none');
-}
+    function disableNudges() {
+        nudgeElements.forEach(btn => btn.style.display = 'none');
+    }
+</script>
+
+</body>
+</html>
