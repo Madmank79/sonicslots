@@ -1,113 +1,462 @@
-import logging
-import random
-import sqlite3
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sonic Slots</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: linear-gradient(160deg, #0a1428 0%, #0d1f3c 50%, #071020 100%);
+    color: #fff;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+  }
+  #game {
+    width: 100%;
+    max-width: 420px;
+    background: linear-gradient(180deg, #12243f 0%, #0c1a30 100%);
+    border-radius: 20px;
+    border: 3px solid #00b4ff;
+    box-shadow: 0 0 30px rgba(0,180,255,0.25), inset 0 0 20px rgba(0,0,0,0.4);
+    padding: 16px 14px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  h1 {
+    text-align: center;
+    font-size: 26px;
+    color: #00e5ff;
+    text-shadow: 0 0 12px #00b4ff;
+    margin-bottom: 6px;
+  }
+  .balance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.35);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    border: 1px solid #1a3a5c;
+  }
+  .balance-box {
+    text-align: center;
+  }
+  .balance-label {
+    font-size: 11px;
+    color: #8ab4d9;
+    text-transform: uppercase;
+  }
+  .balance-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffd700;
+  }
+  #message {
+    text-align: center;
+    min-height: 22px;
+    font-size: 14px;
+    color: #ffdd55;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  /* Reels */
+  .reels-container {
+    background: #050d18;
+    border-radius: 14px;
+    padding: 12px 8px;
+    border: 2px solid #1e4a7a;
+    margin-bottom: 12px;
+    box-shadow: inset 0 0 25px rgba(0,0,0,0.8);
+  }
+  .reels-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .reel {
+    flex: 1;
+    background: linear-gradient(180deg, #0a1a30, #071220);
+    border-radius: 10px;
+    border: 2px solid #2a5a8a;
+    height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .symbol {
+    font-size: 42px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+  }
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .hold-row, .nudge-row {
+    display: flex;
+    gap: 6px;
+  }
+  .hold-row button, .nudge-row button {
+    flex: 1;
+    padding: 9px 0;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    background: #1a4a7a;
+    color: #cce6ff;
+    cursor: pointer;
+  }
+  .hold-row button.held {
+    background: #ff3333;
+    color: white;
+    box-shadow: 0 0 10px #ff4444;
+  }
+  .hold-row button:disabled,
+  .nudge-row button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .spin-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  #spinBtn {
+    flex: 2;
+    background: linear-gradient(180deg, #00e676, #00a844);
+    color: #003310;
+    font-size: 20px;
+    font-weight: 800;
+    padding: 14px 0;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #007a33, 0 6px 15px rgba(0,230,118,0.3);
+  }
+  #spinBtn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #007a33;
+  }
+  #autoBtn {
+    flex: 1;
+    background: #2a3a5a;
+    color: #aaccff;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .bet-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 10px 0 6px;
+  }
+  .bet-row button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #1a4a7a;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  #betDisplay {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffdd55;
+    min-width: 80px;
+    text-align: center;
+  }
+  .paytable {
+    margin-top: 14px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: #9ec5e8;
+    line-height: 1.45;
+  }
+  .paytable strong {
+    color: #00e5ff;
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <h1>🦔 Sonic Slots</h1>
 
-# Enable logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+  <div class="balance-row">
+    <div class="balance-box">
+      <div class="balance-label">Rings</div>
+      <div class="balance-value" id="credits">1000</div>
+    </div>
+    <div class="balance-box">
+      <div class="balance-label">Win</div>
+      <div class="balance-value" id="winAmount">0</div>
+    </div>
+  </div>
 
-# --- DATABASE SETUP ---
-def init_db():
-    conn = sqlite3.connect("reaper_scores.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS scores (
-            user_id INTEGER PRIMARY KEY,
-            username TEXT,
-            points INTEGER DEFAULT 0
-        )
-    """)
-    conn.commit()
-    conn.close()
+  <div id="message">Hold is random • Nudge every spin</div>
 
-init_db()
+  <div class="reels-container">
+    <div class="reels-row" id="reelsRow">
+      <div class="reel"><div class="symbol" id="r0">💍</div></div>
+      <div class="reel"><div class="symbol" id="r1">💍</div></div>
+      <div class="reel"><div class="symbol" id="r2">💍</div></div>
+      <div class="reel"><div class="symbol" id="r3">💍</div></div>
+      <div class="reel"><div class="symbol" id="r4">💍</div></div>
+    </div>
+  </div>
 
-# --- REAPER ECOSYSTEM TRIVIA BANK ---
-TRIVIA_QUESTIONS = [
-    {
-        "question": "What structural element in the ecosystem represents tiered growth and support layers for projects?",
-        "options": ["Ascension Pillars", "Red Market Candles", "Slippage Walls", "Burn Zones"],
-        "answer": 0 # Index of the correct option
-    },
-    {
-        "question": "When processing rewards or unlocking ecosystem assets, what fund backs value and secures project floors?",
-        "options": ["The Slush Fund", "The Permanent DRIP Fund", "The Gas Reservoir", "The Validator Pool"],
-        "answer": 1
-    },
-    {
-        "question": "How does the Reaper ecosystem typically handle unvalued, lagging, or dead tokens?",
-        "options": ["By minting more supply", "By ignoring them completely", "By reaping, buying out, and utilizing floor mechanisms", "By locking them in liquidity pools forever"],
-        "answer": 2
-    },
-    {
-        "question": "Which blockchain is the native home of the Reaper (RPR) token and its market-regulation framework?",
-        "options": ["Ethereum", "Solana", "XRP Ledger (XRPL)", "Bitcoin"],
-        "answer": 2
+  <div class="controls">
+    <div class="hold-row">
+      <button id="h0" disabled>Hold</button>
+      <button id="h1" disabled>Hold</button>
+      <button id="h2" disabled>Hold</button>
+      <button id="h3" disabled>Hold</button>
+      <button id="h4" disabled>Hold</button>
+    </div>
+    <div class="nudge-row">
+      <button id="n0">Nudge</button>
+      <button id="n1">Nudge</button>
+      <button id="n2">Nudge</button>
+      <button id="n3">Nudge</button>
+      <button id="n4">Nudge</button>
+    </div>
+
+    <div class="bet-row">
+      <button id="betMinus">−</button>
+      <div id="betDisplay">Bet: 10</div>
+      <button id="betPlus">+</button>
+    </div>
+
+    <div class="spin-row">
+      <button id="spinBtn">SPIN</button>
+      <button id="autoBtn">AUTO</button>
+    </div>
+  </div>
+
+  <div class="paytable">
+    <strong>Paytable (3+ matching)</strong><br>
+    🦔 Sonic = 500 &nbsp;|&nbsp; 💎 Emerald = 300<br>
+    🦊 Tails / 🥊 Knuckles / 🌸 Amy = 150<br>
+    💍 Ring = 80 &nbsp;|&nbsp; 🌭 Chili Dog = 40<br>
+    🤖 Eggman = Lose rings<br>
+    Any 2 matching = 15
+  </div>
+</div>
+
+<script>
+const symbols = ['🦔','🦊','🥊','🌸','💍','💎','🤖','🌭'];
+const values = {
+  '🦔': 500, '💎': 300, '🦊': 150, '🥊': 150,
+  '🌸': 150, '💍': 80, '🌭': 40, '🤖': -80
+};
+
+let reels = [4,4,4,4,4];
+let held = [false,false,false,false,false];
+let holdAvailable = false;
+let nudgesLeft = 1;
+let credits = 1000;
+let bet = 10;
+let isSpinning = false;
+let autoMode = false;
+
+const reelEls = [0,1,2,3,4].map(i => document.getElementById('r'+i));
+const holdBtns = [0,1,2,3,4].map(i => document.getElementById('h'+i));
+const nudgeBtns = [0,1,2,3,4].map(i => document.getElementById('n'+i));
+const creditsEl = document.getElementById('credits');
+const winEl = document.getElementById('winAmount');
+const msgEl = document.getElementById('message');
+const betEl = document.getElementById('betDisplay');
+const spinBtn = document.getElementById('spinBtn');
+const autoBtn = document.getElementById('autoBtn');
+
+// Hold buttons
+holdBtns.forEach((btn, i) => {
+  btn.addEventListener('click', () => {
+    if (!holdAvailable || isSpinning) return;
+    held[i] = !held[i];
+    btn.classList.toggle('held', held[i]);
+    btn.textContent = held[i] ? 'HELD' : 'Hold';
+  });
+});
+
+// Nudge buttons
+nudgeBtns.forEach((btn, i) => {
+  btn.addEventListener('click', () => {
+    if (nudgesLeft <= 0 || isSpinning) return;
+    reels[i] = (reels[i] + 1) % symbols.length;
+    reelEls[i].textContent = symbols[reels[i]];
+    nudgesLeft--;
+    updateNudgeState();
+    msgEl.textContent = nudgesLeft > 0 ? `Nudge left: ${nudgesLeft}` : 'Checking result...';
+    if (nudgesLeft === 0) checkWin();
+  });
+});
+
+// Bet controls
+document.getElementById('betMinus').onclick = () => {
+  if (bet > 5) { bet -= 5; updateBet(); }
+};
+document.getElementById('betPlus').onclick = () => {
+  if (bet < 50) { bet += 5; updateBet(); }
+};
+
+function updateBet() {
+  betEl.textContent = 'Bet: ' + bet;
+}
+
+spinBtn.addEventListener('click', () => {
+  autoMode = false;
+  autoBtn.textContent = 'AUTO';
+  spin();
+});
+
+autoBtn.addEventListener('click', () => {
+  autoMode = !autoMode;
+  autoBtn.textContent = autoMode ? 'STOP' : 'AUTO';
+  if (autoMode) spin();
+});
+
+function spin() {
+  if (isSpinning) return;
+  if (credits < bet) {
+    msgEl.textContent = 'Not enough Rings!';
+    autoMode = false;
+    autoBtn.textContent = 'AUTO';
+    return;
+  }
+
+  credits -= bet;
+  creditsEl.textContent = credits;
+  winEl.textContent = '0';
+  isSpinning = true;
+  msgEl.textContent = 'Spinning...';
+
+  // Reset holds visually after spin starts
+  const spinInterval = setInterval(() => {
+    reels.forEach((_, i) => {
+      if (!held[i]) {
+        const idx = Math.floor(Math.random() * symbols.length);
+        reels[i] = idx;
+        reelEls[i].textContent = symbols[idx];
+      }
+    });
+  }, 70);
+
+  setTimeout(() => {
+    clearInterval(spinInterval);
+
+    // Final stop
+    reels.forEach((_, i) => {
+      if (!held[i]) {
+        const idx = Math.floor(Math.random() * symbols.length);
+        reels[i] = idx;
+        reelEls[i].textContent = symbols[idx];
+      }
+    });
+
+    isSpinning = false;
+
+    // Clear holds
+    held = [false,false,false,false,false];
+    holdBtns.forEach((btn, i) => {
+      btn.classList.remove('held');
+      btn.textContent = 'Hold';
+    });
+
+    // Always give 1 nudge
+    nudgesLeft = 1;
+    updateNudgeState();
+
+    // Random Hold (\~30%)
+    if (Math.random() < 0.30) {
+      holdAvailable = true;
+      updateHoldState();
+      msgEl.textContent = '🎯 HOLD FEATURE + 1 Nudge!';
+    } else {
+      holdAvailable = false;
+      updateHoldState();
+      msgEl.textContent = '1 Nudge available';
     }
-]
 
-# Store active trivia state in memory temporarily
-active_quiz = {}
+    if (autoMode) {
+      setTimeout(spin, 1600);
+    }
+  }, 1400);
+}
 
-# --- COMMANDS ---
+function checkWin() {
+  const counts = {};
+  reels.forEach(i => {
+    const s = symbols[i];
+    counts[s] = (counts[s] || 0) + 1;
+  });
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "💀 Welcome to the **Capital Revival Trivia Bot**!\n\n"
-        "Test your knowledge on Ascension Pillars, Boxes, and XRPL mechanics.\n"
-        "Commands:\n"
-        "/trivia - Drop a new ecosystem question\n"
-        "️/leaderboard - View top community reapers"
-    )
+  let win = 0;
+  let msg = 'No win';
 
-async def send_trivia(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    q_data = random.choice(TRIVIA_QUESTIONS)
-    
-    # Send native Telegram Quiz poll
-    message = await context.bot.send_poll(
-        chat_id=chat_id,
-        question=q_data["question"],
-        options=q_data["options"],
-        type="quiz",
-        correct_option_id=q_data["answer"],
-        is_anonymous=False,
-        explanation="Keep studying the ecosystem lore and whitepaper!"
-    )
-    
-    # Save poll ID to track results if needed
-    active_quiz[message.poll.id] = q_data
+  // Check for 3+ of a kind
+  for (const [sym, cnt] of Object.entries(counts)) {
+    if (cnt >= 3) {
+      const base = values[sym];
+      if (base < 0) {
+        const loss = Math.min(Math.abs(base), credits);
+        credits -= loss;
+        msg = `🤖 Eggman! Lost ${loss} Rings`;
+      } else {
+        win = base * (cnt === 5 ? 3 : cnt === 4 ? 2 : 1);
+        msg = `🎉 ${cnt}× \( {sym} → + \){win}`;
+      }
+      break;
+    }
+  }
 
-async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    conn = sqlite3.connect("reaper_scores.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT username, points FROM scores ORDER BY points DESC LIMIT 5")
-    top_users = cursor.fetchall()
-    conn.close()
+  // Two of a kind fallback
+  if (win === 0 && Object.values(counts).some(c => c >= 2)) {
+    win = 15;
+    msg = 'Two matching → +15';
+  }
 
-    if not top_users:
-        await update.message.reply_text("🏆 No scores recorded yet! Run /trivia to start earning points.")
-        return
+  if (win > 0) {
+    credits += win;
+    winEl.textContent = win;
+  }
 
-    text = "🏆 **Top Ascension Reapers (Leaderboard)** 🏆\n\n"
-    for i, (uname, pts) in enumerate(top_users, 1):
-        name = uname if uname else "Anonymous Reaper"
-        text += f"{i}. {name} — {pts} pts\n"
+  creditsEl.textContent = credits;
+  msgEl.textContent = msg;
+  nudgesLeft = 0;
+  updateNudgeState();
+}
 
-    await update.message.reply_text(text)
+function updateHoldState() {
+  holdBtns.forEach(btn => btn.disabled = !holdAvailable || isSpinning);
+}
+function updateNudgeState() {
+  nudgeBtns.forEach(btn => btn.disabled = nudgesLeft <= 0 || isSpinning);
+}
 
-# --- MAIN APP ---
-def main():
-    # Replace 'YOUR_BOT_TOKEN' with the token you get from @BotFather
-    app = ApplicationBuilder().token("YOUR_BOT_TOKEN").build()
-
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("trivia", send_trivia))
-    app.add_handler(CommandHandler("leaderboard", leaderboard))
-
-    print("Reaper Trivia Bot is active...")
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
+// Init
+updateHoldState();
+updateNudgeState();
+updateBet();
+</script>
+</body>
+</html>
