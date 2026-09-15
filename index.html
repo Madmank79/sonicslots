@@ -380,15 +380,16 @@ function checkWin() {
         credits -= loss;
         msg = `🤖 Eggman! Lost ${loss}`;
       } else {
-        win = base * (cnt === 5 ? 3 : cnt === 4 ? 2 : 1) * bonusMultiplier;
-        msg = `${cnt}× \( {sym} → + \){win}` + (bonusMultiplier > 1 ? ' (×2)' : '');
+        const multiplier = (cnt === 5 ? 3 : cnt === 4 ? 2 : 1) * bonusMultiplier;
+        win = base * multiplier * (bet / 10);
+        msg = `${cnt}× ${sym} → +${win}` + (bonusMultiplier > 1 ? ' (×2)' : '');
       }
       break;
     }
   }
 
   if (win === 0 && Object.values(counts).some(c => c >= 2)) {
-    win = 15 * bonusMultiplier;
+    win = 15 * bonusMultiplier * (bet / 10);
     msg = 'Two matching → +' + win + (bonusMultiplier > 1 ? ' (×2)' : '');
   }
 
