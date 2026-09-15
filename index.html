@@ -23,8 +23,6 @@
     border: 3px solid #00b4ff;
     box-shadow: 0 0 30px rgba(0,180,255,0.25), inset 0 0 20px rgba(0,0,0,0.4);
     padding: 16px 14px 20px;
-    position: relative;
-    overflow: hidden;
   }
   h1 {
     text-align: center;
@@ -36,26 +34,15 @@
   .balance-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     background: rgba(0,0,0,0.35);
     border-radius: 12px;
     padding: 10px 14px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     border: 1px solid #1a3a5c;
   }
-  .balance-box {
-    text-align: center;
-  }
-  .balance-label {
-    font-size: 11px;
-    color: #8ab4d9;
-    text-transform: uppercase;
-  }
-  .balance-value {
-    font-size: 20px;
-    font-weight: 700;
-    color: #ffd700;
-  }
+  .balance-box { text-align: center; }
+  .balance-label { font-size: 11px; color: #8ab4d9; text-transform: uppercase; }
+  .balance-value { font-size: 20px; font-weight: 700; color: #ffd700; }
   #message {
     text-align: center;
     min-height: 22px;
@@ -64,7 +51,6 @@
     margin-bottom: 10px;
     font-weight: 600;
   }
-  /* Reels */
   .reels-container {
     background: #050d18;
     border-radius: 14px;
@@ -73,11 +59,7 @@
     margin-bottom: 12px;
     box-shadow: inset 0 0 25px rgba(0,0,0,0.8);
   }
-  .reels-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 6px;
-  }
+  .reels-row { display: flex; justify-content: space-between; gap: 6px; }
   .reel {
     flex: 1;
     background: linear-gradient(180deg, #0a1a30, #071220);
@@ -85,115 +67,51 @@
     border: 2px solid #2a5a8a;
     height: 130px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: relative;
-    overflow: hidden;
   }
-  .symbol {
-    font-size: 42px;
-    line-height: 1;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
-  }
-  /* Controls */
-  .controls {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .hold-row, .nudge-row {
-    display: flex;
-    gap: 6px;
-  }
+  .symbol { font-size: 42px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)); }
+  .controls { display: flex; flex-direction: column; gap: 8px; }
+  .hold-row, .nudge-row { display: flex; gap: 6px; }
   .hold-row button, .nudge-row button {
-    flex: 1;
-    padding: 9px 0;
-    font-size: 12px;
-    font-weight: 700;
-    border: none;
-    border-radius: 8px;
-    background: #1a4a7a;
-    color: #cce6ff;
-    cursor: pointer;
+    flex: 1; padding: 9px 0; font-size: 12px; font-weight: 700;
+    border: none; border-radius: 8px; background: #1a4a7a; color: #cce6ff; cursor: pointer;
   }
   .hold-row button.held {
-    background: #ff3333;
-    color: white;
-    box-shadow: 0 0 10px #ff4444;
+    background: #ff3333; color: white; box-shadow: 0 0 10px #ff4444;
   }
-  .hold-row button:disabled,
-  .nudge-row button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-  .spin-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
-  }
+  .hold-row button:disabled, .nudge-row button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .spin-row { display: flex; gap: 8px; margin-top: 4px; }
   #spinBtn {
-    flex: 2;
-    background: linear-gradient(180deg, #00e676, #00a844);
-    color: #003310;
-    font-size: 20px;
-    font-weight: 800;
-    padding: 14px 0;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
+    flex: 2; background: linear-gradient(180deg, #00e676, #00a844);
+    color: #003310; font-size: 20px; font-weight: 800; padding: 14px 0;
+    border: none; border-radius: 12px; cursor: pointer;
     box-shadow: 0 4px 0 #007a33, 0 6px 15px rgba(0,230,118,0.3);
   }
-  #spinBtn:active {
-    transform: translateY(3px);
-    box-shadow: 0 1px 0 #007a33;
-  }
+  #spinBtn:active { transform: translateY(3px); box-shadow: 0 1px 0 #007a33; }
   #autoBtn {
-    flex: 1;
-    background: #2a3a5a;
-    color: #aaccff;
-    font-size: 14px;
-    font-weight: 700;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
+    flex: 1; background: #2a3a5a; color: #aaccff;
+    font-size: 14px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer;
   }
   .bet-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    margin: 10px 0 6px;
+    display: flex; justify-content: center; align-items: center; gap: 12px; margin: 10px 0 6px;
   }
   .bet-row button {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: none;
-    background: #1a4a7a;
-    color: white;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    background: #1a4a7a; color: white; font-size: 20px; font-weight: bold; cursor: pointer;
   }
-  #betDisplay {
-    font-size: 16px;
-    font-weight: 700;
-    color: #ffdd55;
-    min-width: 80px;
-    text-align: center;
-  }
+  #betDisplay { font-size: 16px; font-weight: 700; color: #ffdd55; min-width: 80px; text-align: center; }
   .paytable {
-    margin-top: 14px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 11px;
-    color: #9ec5e8;
-    line-height: 1.45;
+    margin-top: 14px; background: rgba(0,0,0,0.3); border-radius: 10px;
+    padding: 10px 12px; font-size: 11px; color: #9ec5e8; line-height: 1.45;
   }
-  .paytable strong {
-    color: #00e5ff;
+  .paytable strong { color: #00e5ff; }
+  .bonus-active {
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.4); }
+    50% { box-shadow: 0 0 20px 8px rgba(0,229,255,0.3); }
   }
 </style>
 </head>
@@ -214,8 +132,8 @@
 
   <div id="message">Hold is random • Nudge every spin</div>
 
-  <div class="reels-container">
-    <div class="reels-row" id="reelsRow">
+  <div class="reels-container" id="reelsBox">
+    <div class="reels-row">
       <div class="reel"><div class="symbol" id="r0">💍</div></div>
       <div class="reel"><div class="symbol" id="r1">💍</div></div>
       <div class="reel"><div class="symbol" id="r2">💍</div></div>
@@ -253,20 +171,20 @@
   </div>
 
   <div class="paytable">
-    <strong>Paytable (3+ matching)</strong><br>
+    <strong>Paytable</strong><br>
     🦔 Sonic = 500 &nbsp;|&nbsp; 💎 Emerald = 300<br>
     🦊 Tails / 🥊 Knuckles / 🌸 Amy = 150<br>
     💍 Ring = 80 &nbsp;|&nbsp; 🌭 Chili Dog = 40<br>
     🤖 Eggman = Lose rings<br>
-    Any 2 matching = 15
+    <strong>⭐ on middle reel = BONUS ROUND</strong> (5 Free Spins ×2)
   </div>
 </div>
 
 <script>
-const symbols = ['🦔','🦊','🥊','🌸','💍','💎','🤖','🌭'];
+const symbols = ['🦔','🦊','🥊','🌸','💍','💎','🤖','🌭','⭐'];
 const values = {
   '🦔': 500, '💎': 300, '🦊': 150, '🥊': 150,
-  '🌸': 150, '💍': 80, '🌭': 40, '🤖': -80
+  '🌸': 150, '💍': 80, '🌭': 40, '🤖': -80, '⭐': 0
 };
 
 let reels = [4,4,4,4,4];
@@ -278,6 +196,11 @@ let bet = 10;
 let isSpinning = false;
 let autoMode = false;
 
+// Bonus state
+let inBonus = false;
+let freeSpinsLeft = 0;
+let bonusMultiplier = 1;
+
 const reelEls = [0,1,2,3,4].map(i => document.getElementById('r'+i));
 const holdBtns = [0,1,2,3,4].map(i => document.getElementById('h'+i));
 const nudgeBtns = [0,1,2,3,4].map(i => document.getElementById('n'+i));
@@ -287,18 +210,19 @@ const msgEl = document.getElementById('message');
 const betEl = document.getElementById('betDisplay');
 const spinBtn = document.getElementById('spinBtn');
 const autoBtn = document.getElementById('autoBtn');
+const reelsBox = document.getElementById('reelsBox');
 
-// Hold buttons
+// Hold
 holdBtns.forEach((btn, i) => {
   btn.addEventListener('click', () => {
-    if (!holdAvailable || isSpinning) return;
+    if (!holdAvailable || isSpinning || inBonus) return;
     held[i] = !held[i];
     btn.classList.toggle('held', held[i]);
     btn.textContent = held[i] ? 'HELD' : 'Hold';
   });
 });
 
-// Nudge buttons
+// Nudge
 nudgeBtns.forEach((btn, i) => {
   btn.addEventListener('click', () => {
     if (nudgesLeft <= 0 || isSpinning) return;
@@ -306,29 +230,25 @@ nudgeBtns.forEach((btn, i) => {
     reelEls[i].textContent = symbols[reels[i]];
     nudgesLeft--;
     updateNudgeState();
-    msgEl.textContent = nudgesLeft > 0 ? `Nudge left: ${nudgesLeft}` : 'Checking result...';
+    msgEl.textContent = nudgesLeft > 0 ? `Nudge left: ${nudgesLeft}` : 'Checking...';
     if (nudgesLeft === 0) checkWin();
   });
 });
 
-// Bet controls
+// Bet
 document.getElementById('betMinus').onclick = () => {
-  if (bet > 5) { bet -= 5; updateBet(); }
+  if (bet > 5 && !inBonus) { bet -= 5; updateBet(); }
 };
 document.getElementById('betPlus').onclick = () => {
-  if (bet < 50) { bet += 5; updateBet(); }
+  if (bet < 50 && !inBonus) { bet += 5; updateBet(); }
 };
-
-function updateBet() {
-  betEl.textContent = 'Bet: ' + bet;
-}
+function updateBet() { betEl.textContent = 'Bet: ' + bet; }
 
 spinBtn.addEventListener('click', () => {
   autoMode = false;
   autoBtn.textContent = 'AUTO';
   spin();
 });
-
 autoBtn.addEventListener('click', () => {
   autoMode = !autoMode;
   autoBtn.textContent = autoMode ? 'STOP' : 'AUTO';
@@ -337,20 +257,23 @@ autoBtn.addEventListener('click', () => {
 
 function spin() {
   if (isSpinning) return;
-  if (credits < bet) {
-    msgEl.textContent = 'Not enough Rings!';
-    autoMode = false;
-    autoBtn.textContent = 'AUTO';
-    return;
+
+  // During bonus we don't charge
+  if (!inBonus) {
+    if (credits < bet) {
+      msgEl.textContent = 'Not enough Rings!';
+      autoMode = false;
+      autoBtn.textContent = 'AUTO';
+      return;
+    }
+    credits -= bet;
+    creditsEl.textContent = credits;
   }
 
-  credits -= bet;
-  creditsEl.textContent = credits;
   winEl.textContent = '0';
   isSpinning = true;
-  msgEl.textContent = 'Spinning...';
+  msgEl.textContent = inBonus ? `FREE SPIN ${6 - freeSpinsLeft}/5` : 'Spinning...';
 
-  // Reset holds visually after spin starts
   const spinInterval = setInterval(() => {
     reels.forEach((_, i) => {
       if (!held[i]) {
@@ -364,7 +287,6 @@ function spin() {
   setTimeout(() => {
     clearInterval(spinInterval);
 
-    // Final stop
     reels.forEach((_, i) => {
       if (!held[i]) {
         const idx = Math.floor(Math.random() * symbols.length);
@@ -382,25 +304,62 @@ function spin() {
       btn.textContent = 'Hold';
     });
 
-    // Always give 1 nudge
-    nudgesLeft = 1;
+    // Check for Bonus trigger (⭐ on middle reel)
+    if (!inBonus && symbols[reels[2]] === '⭐') {
+      startBonus();
+      return;
+    }
+
+    // Normal flow
+    nudgesLeft = inBonus ? 0 : 1;   // no nudge during free spins
     updateNudgeState();
 
-    // Random Hold (\~30%)
-    if (Math.random() < 0.30) {
-      holdAvailable = true;
-      updateHoldState();
-      msgEl.textContent = '🎯 HOLD FEATURE + 1 Nudge!';
+    if (!inBonus) {
+      if (Math.random() < 0.30) {
+        holdAvailable = true;
+        updateHoldState();
+        msgEl.textContent = '🎯 HOLD FEATURE + 1 Nudge!';
+      } else {
+        holdAvailable = false;
+        updateHoldState();
+        msgEl.textContent = '1 Nudge available';
+      }
     } else {
-      holdAvailable = false;
-      updateHoldState();
-      msgEl.textContent = '1 Nudge available';
+      // Inside bonus – auto check win and continue
+      checkWin();
+      freeSpinsLeft--;
+      if (freeSpinsLeft <= 0) {
+        endBonus();
+      } else if (autoMode || true) {
+        setTimeout(spin, 1400);
+      }
+      return;
     }
 
-    if (autoMode) {
-      setTimeout(spin, 1600);
-    }
+    if (autoMode) setTimeout(spin, 1600);
   }, 1400);
+}
+
+function startBonus() {
+  inBonus = true;
+  freeSpinsLeft = 5;
+  bonusMultiplier = 2;
+  holdAvailable = false;
+  nudgesLeft = 0;
+  updateHoldState();
+  updateNudgeState();
+  reelsBox.classList.add('bonus-active');
+  msgEl.textContent = '🌟 SPECIAL STAGE! 5 Free Spins ×2';
+  setTimeout(spin, 1800);
+}
+
+function endBonus() {
+  inBonus = false;
+  bonusMultiplier = 1;
+  reelsBox.classList.remove('bonus-active');
+  msgEl.textContent = 'Bonus finished!';
+  autoMode = false;
+  autoBtn.textContent = 'AUTO';
 }
 
 function checkWin() {
@@ -413,26 +372,24 @@ function checkWin() {
   let win = 0;
   let msg = 'No win';
 
-  // Check for 3+ of a kind
   for (const [sym, cnt] of Object.entries(counts)) {
-    if (cnt >= 3) {
+    if (cnt >= 3 && sym !== '⭐') {
       const base = values[sym];
       if (base < 0) {
         const loss = Math.min(Math.abs(base), credits);
         credits -= loss;
-        msg = `🤖 Eggman! Lost ${loss} Rings`;
+        msg = `🤖 Eggman! Lost ${loss}`;
       } else {
-        win = base * (cnt === 5 ? 3 : cnt === 4 ? 2 : 1);
-        msg = `🎉 ${cnt}× \( {sym} → + \){win}`;
+        win = base * (cnt === 5 ? 3 : cnt === 4 ? 2 : 1) * bonusMultiplier;
+        msg = `${cnt}× \( {sym} → + \){win}` + (bonusMultiplier > 1 ? ' (×2)' : '');
       }
       break;
     }
   }
 
-  // Two of a kind fallback
   if (win === 0 && Object.values(counts).some(c => c >= 2)) {
-    win = 15;
-    msg = 'Two matching → +15';
+    win = 15 * bonusMultiplier;
+    msg = 'Two matching → +' + win + (bonusMultiplier > 1 ? ' (×2)' : '');
   }
 
   if (win > 0) {
@@ -447,13 +404,12 @@ function checkWin() {
 }
 
 function updateHoldState() {
-  holdBtns.forEach(btn => btn.disabled = !holdAvailable || isSpinning);
+  holdBtns.forEach(btn => btn.disabled = !holdAvailable || isSpinning || inBonus);
 }
 function updateNudgeState() {
-  nudgeBtns.forEach(btn => btn.disabled = nudgesLeft <= 0 || isSpinning);
+  nudgeBtns.forEach(btn => btn.disabled = nudgesLeft <= 0 || isSpinning || inBonus);
 }
 
-// Init
 updateHoldState();
 updateNudgeState();
 updateBet();
