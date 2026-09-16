@@ -1,3 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sonic Slots</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: linear-gradient(160deg, #0a1428 0%, #0d1f3c 50%, #071020 100%);
+    color: #fff;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+  }
+  #game {
+    width: 100%;
+    max-width: 420px;
+    background: linear-gradient(180deg, #12243f 0%, #0c1a30 100%);
+    border-radius: 20px;
+    border: 3px solid #00b4ff;
+    box-shadow: 0 0 30px rgba(0,180,255,0.25), inset 0 0 20px rgba(0,0,0,0.4);
+    padding: 16px 14px 20px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 26px;
+    color: #00e5ff;
+    text-shadow: 0 0 12px #00b4ff;
+    margin-bottom: 6px;
+  }
+  .balance-row {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(0,0,0,0.35);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    border: 1px solid #1a3a5c;
+  }
+  .balance-box { text-align: center; }
+  .balance-label { font-size: 11px; color: #8ab4d9; text-transform: uppercase; }
+  .balance-value { font-size: 20px; font-weight: 700; color: #ffd700; }
+  #message {
+    text-align: center;
+    min-height: 22px;
+    font-size: 14px;
+    color: #ffdd55;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .reels-container {
+    background: #050d18;
+    border-radius: 14px;
+    padding: 12px 8px;
+    border: 2px solid #1e4a7a;
+    margin-bottom: 12px;
+    box-shadow: inset 0 0 25px rgba(0,0,0,0.8);
+  }
+  .reels-row { display: flex; justify-content: space-between; gap: 6px; }
+  .reel {
+    flex: 1;
+    background: linear-gradient(180deg, #0a1a30, #071220);
+    border-radius: 10px;
+    border: 2px solid #2a5a8a;
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .symbol { font-size: 42px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)); }
+  .controls { display: flex; flex-direction: column; gap: 8px; }
+  .hold-row, .nudge-row { display: flex; gap: 6px; }
+  .hold-row button, .nudge-row button {
+    flex: 1; padding: 9px 0; font-size: 12px; font-weight: 700;
+    border: none; border-radius: 8px; background: #1a4a7a; color: #cce6ff; cursor: pointer;
+  }
+  .hold-row button.held {
+    background: #ff3333; color: white; box-shadow: 0 0 10px #ff4444;
+  }
+  .hold-row button:disabled, .nudge-row button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .spin-row { display: flex; gap: 8px; margin-top: 4px; }
+  #spinBtn {
+    flex: 2; background: linear-gradient(180deg, #00e676, #00a844);
+    color: #003310; font-size: 20px; font-weight: 800; padding: 14px 0;
+    border: none; border-radius: 12px; cursor: pointer;
+    box-shadow: 0 4px 0 #007a33, 0 6px 15px rgba(0,230,118,0.3);
+  }
+  #spinBtn:active { transform: translateY(3px); box-shadow: 0 1px 0 #007a33; }
+  #autoBtn {
+    flex: 1; background: #2a3a5a; color: #aaccff;
+    font-size: 14px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer;
+  }
+  .bet-row {
+    display: flex; justify-content: center; align-items: center; gap: 12px; margin: 10px 0 6px;
+  }
+  .bet-row button {
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    background: #1a4a7a; color: white; font-size: 20px; font-weight: bold; cursor: pointer;
+  }
+  #betDisplay { font-size: 16px; font-weight: 700; color: #ffdd55; min-width: 80px; text-align: center; }
+  .paytable {
+    margin-top: 14px; background: rgba(0,0,0,0.3); border-radius: 10px;
+    padding: 10px 12px; font-size: 11px; color: #9ec5e8; line-height: 1.45;
+  }
+  .paytable strong { color: #00e5ff; }
+  .bonus-active {
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.4); }
+    50% { box-shadow: 0 0 20px 8px rgba(0,229,255,0.3); }
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <h1>🦔 Sonic Slots</h1>
+
+  <div class="balance-row">
+    <div class="balance-box">
+      <div class="balance-label">Rings</div>
+      <div class="balance-value" id="credits">1000</div>
+    </div>
+    <div class="balance-box">
+      <div class="balance-label">Win</div>
+      <div class="balance-value" id="winAmount">0</div>
+    </div>
+  </div>
+
+  <div id="message">Hold is random • Nudge every spin</div>
+
+  <div class="reels-container" id="reelsBox">
+    <div class="reels-row">
+      <div class="reel"><div class="symbol" id="r0">💍</div></div>
+      <div class="reel"><div class="symbol" id="r1">💍</div></div>
+      <div class="reel"><div class="symbol" id="r2">💍</div></div>
+      <div class="reel"><div class="symbol" id="r3">💍</div></div>
+      <div class="reel"><div class="symbol" id="r4">💍</div></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="hold-row">
+      <button id="h0" disabled>Hold</button>
+      <button id="h1" disabled>Hold</button>
+      <button id="h2" disabled>Hold</button>
+      <button id="h3" disabled>Hold</button>
+      <button id="h4" disabled>Hold</button>
+    </div>
+    <div class="nudge-row">
+      <button id="n0">Nudge</button>
+      <button id="n1">Nudge</button>
+      <button id="n2">Nudge</button>
+      <button id="n3">Nudge</button>
+      <button id="n4">Nudge</button>
+    </div>
+
+    <div class="bet-row">
+      <button id="betMinus">−</button>
+      <div id="betDisplay">Bet: 10</div>
+      <button id="betPlus">+</button>
+    </div>
+
+    <div class="spin-row">
+      <button id="spinBtn">SPIN</button>
+      <button id="autoBtn">AUTO</button>
+    </div>
+  </div>
+
+  <div class="paytable">
+    <strong>Paytable</strong><br>
+    🦔 Sonic = 500 &nbsp;|&nbsp; 💎 Emerald = 300<br>
+    🦊 Tails / 🥊 Knuckles / 🌸 Amy = 150<br>
+    💍 Ring = 80 &nbsp;|&nbsp; 🌭 Chili Dog = 40<br>
+    🤖 Eggman = Lose rings<br>
+    <strong>⭐ on middle reel = BONUS ROUND</strong> (5 Free Spins ×2)
+  </div>
+</div>
+
 <script>
 const symbols = ['🦔','🦊','🥊','🌸','💍','💎','🤖','🌭','⭐'];
 const values = {
@@ -14,7 +196,6 @@ let bet = 10;
 let isSpinning = false;
 let autoMode = false;
 
-// Bonus state
 let inBonus = false;
 let freeSpinsLeft = 0;
 let bonusMultiplier = 1;
@@ -30,7 +211,6 @@ const spinBtn = document.getElementById('spinBtn');
 const autoBtn = document.getElementById('autoBtn');
 const reelsBox = document.getElementById('reelsBox');
 
-// Hold
 holdBtns.forEach((btn, i) => {
   btn.addEventListener('click', () => {
     if (!holdAvailable || isSpinning || inBonus) return;
@@ -40,7 +220,6 @@ holdBtns.forEach((btn, i) => {
   });
 });
 
-// Nudge
 nudgeBtns.forEach((btn, i) => {
   btn.addEventListener('click', () => {
     if (nudgesLeft <= 0 || isSpinning) return;
@@ -53,7 +232,6 @@ nudgeBtns.forEach((btn, i) => {
   });
 });
 
-// Bet
 document.getElementById('betMinus').onclick = () => {
   if (bet > 5 && !inBonus) { bet -= 5; updateBet(); }
 };
@@ -76,7 +254,6 @@ autoBtn.addEventListener('click', () => {
 function spin() {
   if (isSpinning) return;
 
-  // During bonus we don't charge
   if (!inBonus) {
     if (credits < bet) {
       msgEl.textContent = 'Not enough Rings!';
@@ -115,27 +292,22 @@ function spin() {
 
     isSpinning = false;
 
-    // Clear holds
     held = [false,false,false,false,false];
-    holdBtns.forEach((btn, i) => {
+    holdBtns.forEach((btn) => {
       btn.classList.remove('held');
       btn.textContent = 'Hold';
     });
 
-    // Check for Bonus trigger (⭐ on middle reel)
     if (!inBonus && symbols[reels[2]] === '⭐') {
       startBonus();
       return;
     }
 
-    // Normal flow & evaluation
     nudgesLeft = inBonus ? 0 : 1;   
     updateNudgeState();
 
     if (!inBonus) {
-      // Evaluate normal spin win/loss right away
       checkWin();
-
       if (Math.random() < 0.30) {
         holdAvailable = true;
         updateHoldState();
@@ -145,12 +317,11 @@ function spin() {
         updateHoldState();
       }
     } else {
-      // Inside bonus – auto check win and continue
       checkWin();
       freeSpinsLeft--;
       if (freeSpinsLeft <= 0) {
         endBonus();
-      } else if (autoMode || true) {
+      } else {
         setTimeout(spin, 1400);
       }
       return;
@@ -210,7 +381,6 @@ function checkWin() {
     }
   }
 
-  // Only give consolation two-matching win if no penalty symbol was triggered and no main win occurred
   if (!penaltyTriggered && win === 0 && Object.values(counts).some(c => c >= 2)) {
     win = 15 * bonusMultiplier * (bet / 10);
     msg = 'Two matching → +' + win + (bonusMultiplier > 1 ? ' (×2)' : '');
@@ -237,3 +407,5 @@ updateHoldState();
 updateNudgeState();
 updateBet();
 </script>
+</body>
+</html>
