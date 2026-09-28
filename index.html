@@ -24,6 +24,7 @@
     border: 2px solid #00b4ff;
     box-shadow: 0 0 40px rgba(0,180,255,0.25);
     padding: 20px 16px 28px;
+    position: relative;
   }
 
   .title {
@@ -67,10 +68,7 @@
     margin-bottom: 16px;
     box-shadow: inset 0 0 30px rgba(0,0,0,0.7);
   }
-  .reels-row {
-    display: flex;
-    gap: 8px;
-  }
+  .reels-row { display: flex; gap: 8px; }
   .reel {
     flex: 1;
     height: 110px;
@@ -103,11 +101,6 @@
     color: #c8e4ff;
     cursor: pointer;
     box-shadow: 0 3px 0 #0d2a45;
-    transition: 0.15s;
-  }
-  .btn-row button:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #0d2a45;
   }
   .btn-row button.held {
     background: linear-gradient(180deg, #ff5252, #d32f2f);
@@ -134,17 +127,13 @@
     color: white;
     font-size: 26px;
     font-weight: 900;
-    letter-spacing: 1px;
     cursor: pointer;
     box-shadow: 0 0 0 7px rgba(0,200,83,0.22),
                 0 10px 28px rgba(0,200,83,0.4),
                 inset 0 -8px 14px rgba(0,0,0,0.25);
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    transition: transform 0.12s;
   }
-  #spinBtn:active {
-    transform: scale(0.94);
-  }
+  #spinBtn:active { transform: scale(0.94); }
 
   .bet-row {
     display: flex;
@@ -182,6 +171,85 @@
     line-height: 1.5;
   }
   .paytable strong { color: #00e5ff; }
+
+  /* ===== SCRATCH CARD OVERLAY ===== */
+  #scratchOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  #scratchOverlay.show { display: flex; }
+
+  .scratch-card {
+    width: 280px;
+    height: 180px;
+    background: linear-gradient(135deg, #1a3a5c, #0d2138);
+    border-radius: 16px;
+    border: 3px solid #00e5ff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0,229,255,0.4);
+  }
+  .scratch-prize {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 42px;
+    font-weight: 900;
+    color: #ffd700;
+    text-shadow: 0 0 15px #ffd700;
+  }
+  .scratch-prize small {
+    font-size: 16px;
+    color: #fff;
+    margin-top: 6px;
+  }
+  #scratchCover {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      #4a90d9,
+      #4a90d9 10px,
+      #3a7bc8 10px,
+      #3a7bc8 20px
+    );
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  #scratchCover.hidden { display: none; }
+
+  .scratch-title {
+    color: #00e5ff;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .scratch-btn {
+    margin-top: 20px;
+    padding: 12px 32px;
+    background: linear-gradient(180deg, #00e676, #00a844);
+    border: none;
+    border-radius: 30px;
+    color: #003310;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -242,8 +310,21 @@
     🦊 Tails / 🥊 Knuckles / 🌸 Amy = 150<br>
     💍 Ring = 80 &nbsp;|&nbsp; 🌭 Chili Dog = 40<br>
     🤖 Eggman: 1=−200  2=−400  3=−600  4=−800  5=−5000<br>
-    <strong>⭐ on middle reel = BONUS</strong> (5 Free Spins ×2)
+    <strong>⭐ middle = Free Spins</strong> &nbsp;|&nbsp; <strong>⭐ reel 4 = Scratch Card</strong>
   </div>
+</div>
+
+<!-- Scratch Card Overlay -->
+<div id="scratchOverlay">
+  <div class="scratch-title">✨ SCRATCH CARD ✨</div>
+  <div class="scratch-card">
+    <div class="scratch-prize" id="scratchPrize">
+      ×5
+      <small>MULTIPLIER!</small>
+    </div>
+    <div id="scratchCover">TAP TO SCRATCH</div>
+  </div>
+  <button class="scratch-btn" id="claimBtn" style="display:none;">CLAIM BONUS</button>
 </div>
 
 <script>
@@ -257,15 +338,7 @@ const values = {
   '🦔': 500, '💎': 300, '🦊': 150, '🥊': 150,
   '🌸': 150, '💍': 80, '🌭': 40, '🤖': 0, '⭐': 0
 };
-
-// Updated Eggman penalties
-const eggmanPenalty = {
-  1: 200,
-  2: 400,
-  3: 600,
-  4: 800,
-  5: 5000
-};
+const eggmanPenalty = {1:200, 2:400, 3:600, 4:800, 5:5000};
 
 let reels = [4,4,4,4,4];
 let held = [false,false,false,false,false];
@@ -277,6 +350,8 @@ let isSpinning = false;
 let inBonus = false;
 let freeSpinsLeft = 0;
 let bonusMultiplier = 1;
+let pendingScratchMult = 1;
+let currentWinBeforeScratch = 0;
 
 const reelEls = [0,1,2,3,4].map(i => document.getElementById('r'+i));
 const holdBtns = [0,1,2,3,4].map(i => document.getElementById('h'+i));
@@ -286,6 +361,10 @@ const winEl = document.getElementById('winAmount');
 const msgEl = document.getElementById('message');
 const betEl = document.getElementById('betDisplay');
 const spinBtn = document.getElementById('spinBtn');
+const scratchOverlay = document.getElementById('scratchOverlay');
+const scratchCover = document.getElementById('scratchCover');
+const scratchPrize = document.getElementById('scratchPrize');
+const claimBtn = document.getElementById('claimBtn');
 
 function haptic(type = 'medium') {
   try {
@@ -378,6 +457,13 @@ function spin() {
       btn.textContent = 'HOLD';
     });
 
+    // Check for Scratch Card (⭐ on reel 4)
+    if (!inBonus && symbols[reels[4]] === '⭐') {
+      openScratchCard();
+      return;
+    }
+
+    // Check for Free Spins (⭐ on middle reel)
     if (!inBonus && symbols[reels[2]] === '⭐') {
       startBonus();
       return;
@@ -403,6 +489,71 @@ function spin() {
       else setTimeout(spin, 1400);
     }
   }, 1400);
+}
+
+function openScratchCard() {
+  // First calculate the normal win
+  currentWinBeforeScratch = calculateWinAmount();
+  
+  // Random multiplier
+  const mults = [2, 3, 5, 10];
+  pendingScratchMult = mults[Math.floor(Math.random() * mults.length)];
+  
+  scratchPrize.innerHTML = '×' + pendingScratchMult + '<small>MULTIPLIER!</small>';
+  scratchCover.classList.remove('hidden');
+  scratchCover.textContent = 'TAP TO SCRATCH';
+  claimBtn.style.display = 'none';
+  scratchOverlay.classList.add('show');
+  haptic('success');
+}
+
+scratchCover.addEventListener('click', () => {
+  scratchCover.classList.add('hidden');
+  claimBtn.style.display = 'block';
+  haptic('medium');
+});
+
+claimBtn.addEventListener('click', () => {
+  const finalWin = Math.max(currentWinBeforeScratch, 20) * pendingScratchMult; // min base 20 rings
+  credits += finalWin;
+  creditsEl.textContent = credits;
+  winEl.textContent = finalWin;
+  msgEl.textContent = '✨ Scratch ×' + pendingScratchMult + ' → +' + finalWin + ' Rings!';
+  scratchOverlay.classList.remove('show');
+  haptic('success');
+  
+  // Continue normal flow
+  nudgesLeft = 1;
+  updateNudgeState();
+  if (Math.random() < 0.30) {
+    holdAvailable = true;
+    updateHoldState();
+  } else {
+    holdAvailable = false;
+    updateHoldState();
+  }
+});
+
+function calculateWinAmount() {
+  const counts = {};
+  reels.forEach(i => {
+    const s = symbols[i];
+    counts[s] = (counts[s] || 0) + 1;
+  });
+
+  let win = 0;
+  for (const [sym, cnt] of Object.entries(counts)) {
+    if (cnt >= 3 && sym !== '⭐' && sym !== '🤖') {
+      const base = values[sym];
+      const mult = (cnt === 5 ? 3 : cnt === 4 ? 2 : 1);
+      win = Math.round(base * mult * (bet / 10));
+      break;
+    }
+  }
+  if (win === 0 && Object.values(counts).some(c => c >= 2)) {
+    win = Math.round(15 * (bet / 10));
+  }
+  return win;
 }
 
 function startBonus() {
