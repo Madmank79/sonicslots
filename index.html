@@ -733,7 +733,7 @@ function triggerSuperJackpot() {
 }
 
 function triggerEggmanTrap() {
-  const penalty = Math.min(1000 * (bet / 10), credits);
+  const penalty = Math.min(10000 * (bet / 10), credits);
   credits -= penalty;
   creditsEl.textContent = credits;
   msgEl.textContent = '💥 EGGMAN WON THE RACE! -' + penalty + ' Rings Penalty!';
