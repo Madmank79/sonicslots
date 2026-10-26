@@ -416,6 +416,7 @@
     🦔 Sonic = 500 &nbsp;|&nbsp; 💎 Emerald = 300<br>
     🦊 Tails / 🥊 Knuckles / 🌸 Amy = 150<br>
     💍 Ring = 80 &nbsp;|&nbsp; 🌭 Chili Dog = 40<br>
+    🤖 Eggman: 1=−200 2=−400 3=−600 4=−800 5=−5000<br>
     🤖 Reel 1 = Eggman Scratch Trap &nbsp;|&nbsp; ⭐ Reel 4 = Bonus Scratch<br>
     <strong>⭐ middle = Free Spins</strong>
   </div>
@@ -495,6 +496,7 @@ const values = {
   '🦔': 500, '💎': 300, '🦊': 150, '🥊': 150,
   '🌸': 150, '💍': 80, '🌭': 40, '🤖': 0, '⭐': 0
 };
+const eggmanPenalty = {1:200, 2:400, 3:600, 4:800, 5:5000};
 
 let reels = [4,4,4,4,4];
 let held = [false,false,false,false,false];
@@ -733,7 +735,7 @@ function triggerSuperJackpot() {
 }
 
 function triggerEggmanTrap() {
-  const penalty = Math.min(10000 * (bet / 10), credits);
+  const penalty = Math.min(1000 * (bet / 10), credits);
   credits -= penalty;
   creditsEl.textContent = credits;
   msgEl.textContent = '💥 EGGMAN WON THE RACE! -' + penalty + ' Rings Penalty!';
@@ -873,6 +875,16 @@ function checkWin() {
   let win = 0;
   let messages = [];
 
+  // Instant Eggman Penalty per symbol
+  const eggCount = counts['🤖'] || 0;
+  if (eggCount > 0) {
+    let loss = (eggmanPenalty[eggCount] || 0) * (bet / 10);
+    loss = Math.min(loss, credits);
+    credits -= loss;
+    messages.push('🤖 ' + eggCount + ' Eggman −' + loss);
+    playSound('eggman');
+  }
+
   for (const [sym, cnt] of Object.entries(counts)) {
     if (cnt >= 3 && sym !== '⭐' && sym !== '🤖') {
       const base = values[sym];
@@ -883,7 +895,7 @@ function checkWin() {
     }
   }
 
-  if (win === 0 && Object.values(counts).some(c => c >= 2)) {
+  if (win === 0 && Object.values(counts).some(c => c >= 2) && eggCount === 0) {
     win = Math.round(15 * bonusMultiplier * (bet / 10));
     messages.push('Two matching +' + win);
   }
