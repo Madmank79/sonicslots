@@ -34,33 +34,75 @@
     background: linear-gradient(90deg, #00e5ff, #69f0ae);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     letter-spacing: 1px;
     text-shadow: 0 2px 10px rgba(0,229,255,0.3);
   }
 
-  /* Chaos Emerald Bar */
-  .emerald-tracker {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    background: rgba(0,0,0,0.5);
-    padding: 8px;
-    border-radius: 12px;
-    margin-bottom: 10px;
+  /* Sonic vs. Eggman Race Tracker */
+  .race-box {
+    background: rgba(0,0,0,0.6);
+    border-radius: 14px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
     border: 1px solid #1a3a5c;
   }
-  .emerald-icon {
-    font-size: 18px;
-    opacity: 0.25;
-    filter: grayscale(100%);
+  .race-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .sonic-label { color: #00e5ff; }
+  .eggman-label { color: #ff1744; }
+  
+  .race-track {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+  }
+  .track-side {
+    display: flex;
+    gap: 3px;
+    flex: 1;
+  }
+  .track-side.eggman-side {
+    justify-content: flex-end;
+  }
+  
+  .race-slot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    opacity: 0.2;
     transition: all 0.3s ease;
   }
-  .emerald-icon.collected {
+  .race-slot.filled-sonic {
     opacity: 1;
-    filter: none;
-    transform: scale(1.15);
-    text-shadow: 0 0 8px #00e5ff;
+    border-color: #00e5ff;
+    box-shadow: 0 0 8px #00e5ff;
+    background: rgba(0,229,255,0.2);
+  }
+  .race-slot.filled-eggman {
+    opacity: 1;
+    border-color: #ff1744;
+    box-shadow: 0 0 8px #ff1744;
+    background: rgba(255,23,68,0.2);
+  }
+  .vs-divider {
+    font-size: 10px;
+    font-weight: 900;
+    color: #ffdd55;
+    display: flex;
+    align-items: center;
+    padding: 0 2px;
   }
 
   .balance-bar {
@@ -292,15 +334,33 @@
 <div id="game">
   <div class="title">SonicSlots</div>
 
-  <!-- Chaos Emerald Collection Bar -->
-  <div class="emerald-tracker" id="emeraldTracker">
-    <div class="emerald-icon" id="em0">💎</div>
-    <div class="emerald-icon" id="em1">💎</div>
-    <div class="emerald-icon" id="em2">💎</div>
-    <div class="emerald-icon" id="em3">💎</div>
-    <div class="emerald-icon" id="em4">💎</div>
-    <div class="emerald-icon" id="em5">💎</div>
-    <div class="emerald-icon" id="em6">💎</div>
+  <!-- Sonic vs. Eggman Race Bar -->
+  <div class="race-box">
+    <div class="race-header">
+      <span class="sonic-label">🦔 SONIC (<span id="sonicCount">0</span>/7)</span>
+      <span class="eggman-label">EGGMAN (<span id="eggmanCount">0</span>/7) 🤖</span>
+    </div>
+    <div class="race-track">
+      <div class="track-side">
+        <div class="race-slot" id="s0">💎</div>
+        <div class="race-slot" id="s1">💎</div>
+        <div class="race-slot" id="s2">💎</div>
+        <div class="race-slot" id="s3">💎</div>
+        <div class="race-slot" id="s4">💎</div>
+        <div class="race-slot" id="s5">💎</div>
+        <div class="race-slot" id="s6">💎</div>
+      </div>
+      <div class="vs-divider">VS</div>
+      <div class="track-side eggman-side">
+        <div class="race-slot" id="e6">🤖</div>
+        <div class="race-slot" id="e5">🤖</div>
+        <div class="race-slot" id="e4">🤖</div>
+        <div class="race-slot" id="e3">🤖</div>
+        <div class="race-slot" id="e2">🤖</div>
+        <div class="race-slot" id="e1">🤖</div>
+        <div class="race-slot" id="e0">🤖</div>
+      </div>
+    </div>
   </div>
 
   <div class="balance-bar">
@@ -314,7 +374,7 @@
     </div>
   </div>
 
-  <div id="message">Collect 7 Emeralds for Super Jackpot!</div>
+  <div id="message">Race to 7! Sonic = Bonus | Eggman = Trap</div>
 
   <div class="reels-box">
     <div class="reels-row">
@@ -443,13 +503,15 @@ let nudgesLeft = 1;
 
 let credits = localStorage.getItem('sonic_credits') ? parseInt(localStorage.getItem('sonic_credits')) : 1000;
 let emeraldsCollected = localStorage.getItem('sonic_emeralds') ? parseInt(localStorage.getItem('sonic_emeralds')) : 0;
+let eggmenCollected = localStorage.getItem('sonic_eggmen') ? parseInt(localStorage.getItem('sonic_eggmen')) : 0;
+
 let bet = 10;
 let isSpinning = false;
 let inBonus = false;
 let freeSpinsLeft = 0;
 let bonusMultiplier = 1;
 let pendingScratchMult = 1;
-let scratchType = 'bonus'; // 'bonus' or 'penalty'
+let scratchType = 'bonus';
 
 const reelEls = [0,1,2,3,4].map(i => document.getElementById('r'+i));
 const holdBtns = [0,1,2,3,4].map(i => document.getElementById('h'+i));
@@ -470,16 +532,25 @@ const claimBtn = document.getElementById('claimBtn');
 function saveState() {
   localStorage.setItem('sonic_credits', credits);
   localStorage.setItem('sonic_emeralds', emeraldsCollected);
+  localStorage.setItem('sonic_eggmen', eggmenCollected);
 }
 
-function updateEmeraldDisplay() {
+function updateRaceDisplay() {
+  document.getElementById('sonicCount').textContent = emeraldsCollected;
+  document.getElementById('eggmanCount').textContent = eggmenCollected;
+
   for (let i = 0; i < 7; i++) {
-    const el = document.getElementById('em' + i);
-    if (i < emeraldsCollected) el.classList.add('collected');
-    else el.classList.remove('collected');
+    const sEl = document.getElementById('s' + i);
+    const eEl = document.getElementById('e' + i);
+
+    if (i < emeraldsCollected) sEl.classList.add('filled-sonic');
+    else sEl.classList.remove('filled-sonic');
+
+    if (i < eggmenCollected) eEl.classList.add('filled-eggman');
+    else eEl.classList.remove('filled-eggman');
   }
 }
-updateEmeraldDisplay();
+updateRaceDisplay();
 
 function haptic(type = 'medium') {
   try {
@@ -578,23 +649,33 @@ function finalizeSpin() {
     btn.textContent = 'HOLD';
   });
 
-  // Check Emerald Count
+  // Track Emeralds vs Eggman
   reels.forEach(rIdx => {
     if (symbols[rIdx] === '💎') {
       if (emeraldsCollected < 7) {
         emeraldsCollected++;
         playSound('emerald');
       }
-      if (emeraldsCollected === 7) {
-        triggerSuperJackpot();
-        return;
+    } else if (symbols[rIdx] === '🤖') {
+      if (eggmenCollected < 7) {
+        eggmenCollected++;
+        playSound('eggman');
       }
     }
   });
-  updateEmeraldDisplay();
+  updateRaceDisplay();
   saveState();
 
-  // Check Reel 1 Eggman Trap Scratch Card
+  // Check Winners of the Race
+  if (emeraldsCollected >= 7) {
+    triggerSuperJackpot();
+    return;
+  } else if (eggmenCollected >= 7) {
+    triggerEggmanTrap();
+    return;
+  }
+
+  // Check Reel 1 Eggman Scratch Trap
   if (!inBonus && symbols[reels[0]] === '🤖') {
     openScratchCard('penalty');
     return;
@@ -638,12 +719,30 @@ function triggerSuperJackpot() {
   credits += jackpotWin;
   creditsEl.textContent = credits;
   winEl.textContent = jackpotWin;
-  msgEl.textContent = '🌟 SUPER SONIC JACKPOT! + ' + jackpotWin + ' Rings! 🌟';
+  msgEl.textContent = '🌟 SONIC WON THE RACE! + ' + jackpotWin + ' Rings! 🌟';
   emeraldsCollected = 0;
-  updateEmeraldDisplay();
+  eggmenCollected = 0;
+  updateRaceDisplay();
   saveState();
   playSound('win');
   haptic('success');
+  nudgesLeft = 1;
+  updateNudgeState();
+  holdAvailable = false;
+  updateHoldState();
+}
+
+function triggerEggmanTrap() {
+  const penalty = Math.min(1000 * (bet / 10), credits);
+  credits -= penalty;
+  creditsEl.textContent = credits;
+  msgEl.textContent = '💥 EGGMAN WON THE RACE! -' + penalty + ' Rings Penalty!';
+  emeraldsCollected = 0;
+  eggmenCollected = 0;
+  updateRaceDisplay();
+  saveState();
+  playSound('eggman');
+  haptic('error');
   nudgesLeft = 1;
   updateNudgeState();
   holdAvailable = false;
