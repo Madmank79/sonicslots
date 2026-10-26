@@ -717,7 +717,7 @@ function finalizeSpin() {
 }
 
 function triggerSuperJackpot() {
-  const jackpotWin = 2500 * (bet / 10);
+  const jackpotWin = 1000 * (bet / 10);
   credits += jackpotWin;
   creditsEl.textContent = credits;
   winEl.textContent = jackpotWin;
@@ -735,7 +735,7 @@ function triggerSuperJackpot() {
 }
 
 function triggerEggmanTrap() {
-  const penalty = Math.min(1000 * (bet / 10), credits);
+  const penalty = Math.min(10000 * (bet / 10), credits);
   credits -= penalty;
   creditsEl.textContent = credits;
   msgEl.textContent = '💥 EGGMAN WON THE RACE! -' + penalty + ' Rings Penalty!';
